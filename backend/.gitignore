@@ -1,0 +1,23 @@
+//.gitignore file for backend project
+
+# Node modules
+node_modules/
+
+# Environment variables
+.env
+
+#package-lock.json
+package-lock.json
+
+# Logs
+logs/
+
+# Build output
+dist/
+
+# IDE specific files
+.vscode/
+
+# OS specific files
+.DS_Store
+
