@@ -1,55 +1,68 @@
 import dotenv from 'dotenv';
 import path from 'path';
 
-// Load correct env file
 const envFile =
   process.env.NODE_ENV === 'production'
     ? '.env.production'
     : '.env.development';
 
-dotenv.config({
-  path: path.resolve(process.cwd(), envFile),
-});
+dotenv.config({ path: path.resolve(process.cwd(), envFile) });
 
-// Helper to require env variables
 const required = (key, fallback) => {
   const value = process.env[key] ?? fallback;
-
-  if (!value) {
+  if (value === undefined || value === null || value === '') {
     throw new Error(`Missing required env variable: ${key}`);
   }
-
   return value;
 };
 
+const isDev = process.env.NODE_ENV !== 'production';
+
 const env = {
   NODE_ENV: process.env.NODE_ENV || 'development',
-
   PORT: Number(process.env.PORT) || 4000,
 
-  MONGO_URI: required(
-    'MONGO_URI',
-    process.env.NODE_ENV === 'development'
-      ? 'mongodb://127.0.0.1:27017/nagpur-property'
-      : null
-  ),
+  // DB
+  MONGO_URI: required('MONGO_URI', isDev ? 'mongodb://127.0.0.1:27017/nagpur-property' : null),
+  REDIS_URL: required('REDIS_URL', isDev ? 'redis://127.0.0.1:6379' : null),
 
-  REDIS_URL: required(
-    'REDIS_URL',
-    process.env.NODE_ENV === 'development'
-      ? 'redis://127.0.0.1:6379'
-      : null
-  ),
-
-  JWT_SECRET: required(
-    'JWT_SECRET',
-    process.env.NODE_ENV === 'development'
-      ? 'dev-secret-key'
-      : null
-  ),
-
- 
+  // Auth
+  JWT_SECRET: required('JWT_SECRET', isDev ? 'dev-secret-key-change-in-prod' : null),
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '7d',
+  JWT_REFRESH_SECRET: required('JWT_REFRESH_SECRET', isDev ? 'dev-refresh-secret' : null),
+  JWT_REFRESH_EXPIRES_IN: process.env.JWT_REFRESH_EXPIRES_IN || '30d',
+
+  // CORS
+  ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS || 'http://localhost:3000',
+
+  // S3
+  S3_REGION: process.env.S3_REGION || 'ap-south-1',
+  S3_ENDPOINT: process.env.S3_ENDPOINT || '',
+  S3_ACCESS_KEY: process.env.S3_ACCESS_KEY || '',
+  S3_SECRET_KEY: process.env.S3_SECRET_KEY || '',
+  S3_BUCKET: process.env.S3_BUCKET || '',
+  S3_PUBLIC_URL: process.env.S3_PUBLIC_URL || '',
+
+  // Mailer
+  SMTP_HOST: process.env.SMTP_HOST || '',
+  SMTP_PORT: process.env.SMTP_PORT || '587',
+  SMTP_USER: process.env.SMTP_USER || '',
+  SMTP_PASS: process.env.SMTP_PASS || '',
+
+  // MSG91
+  MSG91_AUTH_KEY: process.env.MSG91_AUTH_KEY || '',
+  MSG91_TEMPLATE_ID: process.env.MSG91_TEMPLATE_ID || '',
+
+  // Firebase
+  FIREBASE_SERVICE_ACCOUNT: process.env.FIREBASE_SERVICE_ACCOUNT || '',
+
+  // Google Maps
+  GOOGLE_MAPS_API_KEY: process.env.GOOGLE_MAPS_API_KEY || '',
+
+  // Razorpay
+  RAZORPAY_KEY_ID: process.env.RAZORPAY_KEY_ID || '',
+  RAZORPAY_KEY_SECRET: process.env.RAZORPAY_KEY_SECRET || '',
+  RAZORPAY_WEBHOOK_SECRET: process.env.RAZORPAY_WEBHOOK_SECRET || '',
 };
 
 export default env;

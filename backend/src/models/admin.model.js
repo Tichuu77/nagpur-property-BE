@@ -1,0 +1,118 @@
+import mongoose from "mongoose";
+import bcrypt from 'bcrypt';
+import crypto from 'crypto';
+import jwt from 'jsonwebtoken'
+import env from '../config/env.js';
+import {
+    ADMIN_ROLLS_ENUM,
+    MAX_FIRST_NAME_LENGTH,
+    MIN_FIRST_NAME_LENGTH,
+    MIN_LAST_NAME_LENGTH,
+    MAX_LAST_NAME_LENGTH,
+    MAX_LAST_NAME_LENGTH_MESSAGE,
+    MIN_FIRST_NAME_LENGTH_MESSAGE,
+    MIN_LAST_NAME_LENGTH_MESSAGE,
+    MAX_FIRST_NAME_LENGTH_MESSAGE,
+    INVALID_ROLE_MESSAGE,
+    EMAIL_REGEX,
+    EMAIL_REGEX_MESSAGE,
+    PHONE_REGEX,
+    PHONE_REGEX_MESSAGE,
+    MIN_PASSWORD_LENGTH,
+    MIN_PASSWORD_LENGTH_MESSAGE,
+    MAX_PASSWORD_LENGTH,
+    MAX_PASSWORD_LENGTH_MESSAGE,
+    MAX_BIO_LENGTH,
+    MAX_BIO_LENGTH_MESSAGE
+} from "../constants/admin.constants.js";
+
+const adminSchema = new mongoose.Schema({
+    firstName: {
+        type: String,
+        trim: true,
+        minlength: [MIN_FIRST_NAME_LENGTH, MIN_FIRST_NAME_LENGTH_MESSAGE],
+        maxlength: [MAX_FIRST_NAME_LENGTH, MAX_FIRST_NAME_LENGTH_MESSAGE],
+        required: [true, 'First name is required']
+    },
+    lastName: {
+        type: String,
+        trim : true,
+        required: [true, 'Last name is required'],
+        minlength: [MIN_LAST_NAME_LENGTH, MIN_LAST_NAME_LENGTH_MESSAGE],
+        maxlength: [MAX_LAST_NAME_LENGTH, MAX_LAST_NAME_LENGTH_MESSAGE]
+    },
+    email: {
+        type: String,
+        trim: true,
+        lowercase: true,
+        required: [true, 'Email is required'],
+        unique: true,
+        match: [EMAIL_REGEX, EMAIL_REGEX_MESSAGE]
+    },
+    password: {
+        type: String,
+        required: [true, 'Password is required'],
+        minlength: [MIN_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH_MESSAGE],
+        maxlength: [MAX_PASSWORD_LENGTH, MAX_PASSWORD_LENGTH_MESSAGE],
+        select: false
+    },
+    phone: {
+        type: String,
+        required: [true, 'Phone number is required'],
+        match: [PHONE_REGEX, PHONE_REGEX_MESSAGE]
+    },
+    bio: {
+        type: String,
+        maxlength: [MAX_BIO_LENGTH, MAX_BIO_LENGTH_MESSAGE]
+    },
+    role: {
+        type: String,
+        enum: { values: ADMIN_ROLLS_ENUM, message: INVALID_ROLE_MESSAGE },
+        required: [true, 'Role is required']
+    },
+    otp: { type: String, select: false },
+    otpExpiry: { type: Date, select: false },
+    otpToken: { type: String, select: false },
+    isActive: { type: Boolean, default: true },
+    avatar: { type: String },
+},
+    { timestamps: true }
+);
+
+
+adminSchema.pre('save', async function (next) {
+    if (!this.isModified('password')) return next();
+
+    this.password = await bcrypt.hash(this.password, 10);
+    next();
+});
+
+adminSchema.methods.comparePassword = async function (password) {
+    if (!this.password) throw new Error('Password not selected');
+    return bcrypt.compare(password, this.password);
+};
+
+adminSchema.methods.generateOTP = function () {
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    this.otpToken = crypto.createHash('sha256').update(otp).digest('hex');
+    this.otpExpiry = Date.now() + 10 * 60 * 1000;
+
+    return otp;
+};
+
+adminSchema.methods.verifyOTP = function (otp) {
+    console.log(this.otpToken, otp);
+    console.log(this.otpExpiry, Date.now());
+    const hashed = crypto.createHash('sha256').update(otp).digest('hex');
+    console
+
+    return this.otpToken === hashed && this.otpExpiry > Date.now();
+};
+
+adminSchema.methods.generateToken = function () {
+    return jwt.sign({ id: this._id, role: this.role,isActive: this.isActive }, env.JWT_SECRET, { expiresIn: '1d' });
+};
+
+const Admin = mongoose.model('Admin', adminSchema);
+export default Admin;
