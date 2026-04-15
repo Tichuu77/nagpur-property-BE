@@ -12,7 +12,16 @@ const AdminService = {
     let avatar;
     if (file) {
       const uploaded = await storageService.upload(file, 'avatars');
-      avatar = uploaded?.url;
+      if (uploaded) {
+        const { avatar:oldAvatar } = await AdminRepository.findById(adminId);
+        if ( oldAvatar ) {
+          const key = oldAvatar.startsWith("/") ? oldAvatar.slice(1) : oldAvatar;
+          await storageService.delete(key);
+        }
+
+        avatar = uploaded?.url;
+      }
+
     }
     const admin = await AdminRepository.update(
       adminId,
@@ -20,7 +29,7 @@ const AdminService = {
       { new: true }
     );
     if (!admin) throw { status: 401, message: 'Unauthorized' };
-    return  admin;
+    return admin;
   },
 
   login: async (payload) => {
@@ -53,7 +62,7 @@ const AdminService = {
     return otp;
   },
 
-  resetPassword: async ( email, otp, newPassword) => {
+  resetPassword: async (email, otp, newPassword) => {
     const admin = await AdminRepository.findByEmailWithOTPToken(email);
     if (!admin) throw { status: 404, message: 'Admin not found' };
     if (!admin.verifyOTP(otp)) throw { status: 404, message: 'Invalid OTP' };

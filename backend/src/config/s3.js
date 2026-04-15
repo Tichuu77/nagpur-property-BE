@@ -9,7 +9,6 @@ const initS3 = () => {
       region: env.S3_REGION,
 
       endpoint: env.S3_ENDPOINT, // ACE S3 endpoint
-
       credentials: {
         accessKeyId: env.S3_ACCESS_KEY,
         secretAccessKey: env.S3_SECRET_KEY,

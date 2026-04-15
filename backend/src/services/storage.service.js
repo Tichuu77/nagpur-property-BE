@@ -30,6 +30,7 @@ const storageService = {
       Key: fileName,
       Body: file.buffer,
       ContentType: file.mimetype,
+      ACL: 'public-read',
     });
 
     await s3.send(command);
