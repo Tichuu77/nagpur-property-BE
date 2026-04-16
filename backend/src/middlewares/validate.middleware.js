@@ -1,66 +1,73 @@
+import { z } from 'zod';
+
+/**
+ * validate(schema)
+ *
+ * Supports two patterns:
+ *
+ * 1. Flat Zod schema — validates req.body directly
+ *    validate(myZodSchema)
+ *
+ * 2. Nested shape — validates body / query / params separately
+ *    validate({ body: mySchema, query: myQuerySchema, params: myParamsSchema })
+ */
 export default function validate(schema) {
   return (req, _res, next) => {
     try {
-      const validatedData = {};
+      // ── Pattern 1: flat Zod schema (has .parse / .safeParse) ─────────────────
+      if (typeof schema?.safeParse === 'function') {
+        const result = schema.safeParse(req.body);
 
-      // Validate body
-      if (schema.body) {
-        const { error, value } = schema.body.validate(req.body, {
-          abortEarly: false,
-          stripUnknown: true,
-        });
-
-        if (error) {
+        if (!result.success) {
+          const errors = result.error.errors.map((e) => e.message);
           return next({
             status: 400,
             message: 'Validation Error',
-            errors: error.details.map((e) => e.message),
+            errors,
           });
         }
 
-        validatedData.body = value;
+        req.body = result.data;
+        return next();
       }
 
-      // Validate query
-      if (schema.query) {
-        const { error, value } = schema.query.validate(req.query, {
-          abortEarly: false,
-          stripUnknown: true,
-        });
+      // ── Pattern 2: nested { body?, query?, params? } ──────────────────────────
+      const parts = ['body', 'query', 'params'];
 
-        if (error) {
-          return next({
-            status: 400,
-            message: 'Query Validation Error',
-            errors: error.details.map((e) => e.message),
+      for (const part of parts) {
+        if (!schema[part]) continue;
+
+        const partSchema = schema[part];
+        let result;
+
+        // Support both Zod schemas and Joi-style schemas
+        if (typeof partSchema.safeParse === 'function') {
+          // Zod
+          result = partSchema.safeParse(req[part]);
+          if (!result.success) {
+            return next({
+              status: 400,
+              message: `${part.charAt(0).toUpperCase() + part.slice(1)} Validation Error`,
+              errors: result.error.errors.map((e) => e.message),
+            });
+          }
+          req[part] = result.data;
+        } else if (typeof partSchema.validate === 'function') {
+          // Joi
+          const { error, value } = partSchema.validate(req[part], {
+            abortEarly: false,
+            stripUnknown: true,
           });
+          if (error) {
+            return next({
+              status: 400,
+              message: `${part.charAt(0).toUpperCase() + part.slice(1)} Validation Error`,
+              errors: error.details.map((e) => e.message),
+            });
+          }
+          req[part] = value;
         }
-
-        validatedData.query = value;
       }
-
-      // Validate params
-      if (schema.params) {
-        const { error, value } = schema.params.validate(req.params, {
-          abortEarly: false,
-          stripUnknown: true,
-        });
-
-        if (error) {
-          return next({
-            status: 400,
-            message: 'Params Validation Error',
-            errors: error.details.map((e) => e.message),
-          });
-        }
-
-        validatedData.params = value;
-      }
-
-      // Replace req data with sanitized values
-      if (validatedData.body) req.body = validatedData.body;
-      if (validatedData.query) req.query = validatedData.query;
-      if (validatedData.params) req.params = validatedData.params;
 
       next();
     } catch (err) {
