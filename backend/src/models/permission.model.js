@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import {MODULES_ENUMS} from '../constants/permission.constants.js'
 
 /**
  * Permission collection
@@ -22,19 +23,7 @@ const permissionSchema = new mongoose.Schema(
       type: String,
       required: [true, 'module is required'],
       enum: {
-        values: [
-          'dashboard',
-          'sub-admin',
-          'brokers',
-          'customers',
-          'leads',
-          'properties',
-          'revenue',
-          'analytics',
-          'plans',
-          'notifications',
-          'settings',
-        ],
+        values: MODULES_ENUMS,
         message: '{VALUE} is not a valid module',
       },
     },
