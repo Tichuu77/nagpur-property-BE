@@ -3,13 +3,11 @@ import permissionRepository from './permission.repository.js';
 
 const subAdminService = {
   /**
-   * Create Sub-Admin
+   * Create a new sub-admin and optionally assign initial permissions
    */
   createSubAdmin: async (adminData, modulePermissions = []) => {
     const existing = await subAdminRepository.findByEmail(adminData.email);
-    if (existing) {
-      throw { status: 409, message: 'Email already in use' };
-    }
+    if (existing) throw { status: 409, message: 'Email already in use' };
 
     const subAdmin = await subAdminRepository.create(adminData);
 
@@ -21,109 +19,96 @@ const subAdminService = {
   },
 
   /**
-   * List all sub-admins with permissions
+   * List sub-admins with server-side filtering and pagination.
+   * Each record is hydrated with its permission array.
+   *
+   * Returns: { data, total, page, limit, totalPages }
    */
-  listSubAdmins: async () => {
-    const subAdmins = await subAdminRepository.findAll();
+  listSubAdmins: async ({ search, status, page, limit } = {}) => {
+    const result = await subAdminRepository.findAll({ search, status, page, limit });
 
-    const result = await Promise.all(
-      subAdmins.map(async (sa) => {
+    // Hydrate each sub-admin with their permission records
+    const hydrated = await Promise.all(
+      result.data.map(async (sa) => {
         const permissions = await permissionRepository.findAllByAdminId(sa._id);
-
-        return {
-          ...sa.toObject(),
-          permissions,
-        };
+        return { ...sa.toObject(), permissions };
       })
     );
 
-    return result;
-  },
-
-  /**
-   * Get single sub-admin
-   */
-  getSubAdmin: async (subAdminId) => {
-    const subAdmin = await subAdminRepository.findById(subAdminId);
-
-    if (!subAdmin) {
-      throw { status: 404, message: 'Sub-admin not found' };
-    }
-
-    const permissions = await permissionRepository.findAllByAdminId(subAdminId);
-
     return {
-      ...subAdmin.toObject(),
-      permissions,
+      data:       hydrated,
+      total:      result.total,
+      page:       result.page,
+      limit:      result.limit,
+      totalPages: result.totalPages,
     };
   },
 
   /**
-   * Update permissions (replace all)
+   * Return aggregate counts for the stats cards
+   */
+  getStats: async () => {
+    return subAdminRepository.getStats();
+  },
+
+  /**
+   * Fetch a single sub-admin with their permissions
+   */
+  getSubAdmin: async (subAdminId) => {
+    const subAdmin = await subAdminRepository.findById(subAdminId);
+    if (!subAdmin) throw { status: 404, message: 'Sub-admin not found' };
+
+    const permissions = await permissionRepository.findAllByAdminId(subAdminId);
+    return { ...subAdmin.toObject(), permissions };
+  },
+
+  /**
+   * Replace ALL permission records for a sub-admin
    */
   updatePermissions: async (subAdminId, modulePermissions = []) => {
     const subAdmin = await subAdminRepository.findByIdRaw(subAdminId);
-
-    if (!subAdmin) {
-      throw { status: 404, message: 'Sub-admin not found' };
-    }
+    if (!subAdmin) throw { status: 404, message: 'Sub-admin not found' };
 
     await permissionRepository.replaceAll(subAdminId, modulePermissions);
-
-    const updatedPermissions =
-      await permissionRepository.findAllByAdminId(subAdminId);
-
-    return updatedPermissions;
+    return permissionRepository.findAllByAdminId(subAdminId);
   },
 
   /**
-   * Toggle active/inactive status
+   * Toggle active / inactive status
    */
   toggleStatus: async (subAdminId) => {
     const subAdmin = await subAdminRepository.findByIdRaw(subAdminId);
+    if (!subAdmin) throw { status: 404, message: 'Sub-admin not found' };
 
-    if (!subAdmin) {
-      throw { status: 404, message: 'Sub-admin not found' };
-    }
-
-    const updated = await subAdminRepository.toggleStatus(subAdmin);
-    return updated;
+    return subAdminRepository.toggleStatus(subAdmin);
   },
 
   /**
-   * Delete sub-admin + permissions
+   * Delete a sub-admin and all their permission records
    */
   deleteSubAdmin: async (subAdminId) => {
     const subAdmin = await subAdminRepository.findByIdRaw(subAdminId);
-
-    if (!subAdmin) {
-      throw { status: 404, message: 'Sub-admin not found' };
-    }
+    if (!subAdmin) throw { status: 404, message: 'Sub-admin not found' };
 
     await permissionRepository.deleteAllByAdminId(subAdminId);
     await subAdminRepository.deleteById(subAdminId);
-
-    return { message: 'Sub-admin deleted successfully' };
   },
 
   /**
-   * Get permissions map (used in login)
-   * Output: { module: { read, write, delete } }
+   * Build a flat permissions map used during login token generation.
+   * Returns: { [module]: { read, write, delete } }
+   * Returns null / empty for full admins (caller decides).
    */
   getPermissionsMap: async (adminId) => {
     const records = await permissionRepository.findAllByAdminId(adminId);
-
-    const map = {};
-
-    for (const record of records) {
+    return records.reduce((map, record) => {
       map[record.module] = {
-        read: record.permissions.read,
-        write: record.permissions.write,
+        read:   record.permissions.read,
+        write:  record.permissions.write,
         delete: record.permissions.delete,
       };
-    }
-
-    return map;
+      return map;
+    }, {});
   },
 };
 

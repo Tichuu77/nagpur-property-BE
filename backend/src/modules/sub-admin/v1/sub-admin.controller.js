@@ -16,12 +16,50 @@ export const createSubAdmin = async (req, res, next) => {
 };
 
 /**
- * GET /v1/admin/sub-admins
+ * GET /v1/admin/sub-admins?search=&status=&page=1&limit=10
+ * Returns paginated list with meta in the `pagination` field.
  */
 export const listSubAdmins = async (req, res, next) => {
   try {
-    const subAdmins = await subAdminService.listSubAdmins();
-    res.status(200).json(successResponse(subAdmins, 'Sub-admins fetched successfully'));
+    const {
+      search,
+      status,
+      page  = 1,
+      limit = 10,
+    } = req.query;
+
+    const result = await subAdminService.listSubAdmins({
+      search,
+      status,
+      page:  Number(page),
+      limit: Number(limit),
+    });
+
+    res.status(200).json(
+      successResponse(
+        result.data,
+        'Sub-admins fetched successfully',
+        {
+          total:      result.total,
+          page:       result.page,
+          limit:      result.limit,
+          totalPages: result.totalPages,
+        }
+      )
+    );
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * GET /v1/admin/sub-admins/stats
+ * Returns: { total, active, inactive }
+ */
+export const getStats = async (req, res, next) => {
+  try {
+    const stats = await subAdminService.getStats();
+    res.status(200).json(successResponse(stats, 'Stats fetched successfully'));
   } catch (err) {
     next(err);
   }
@@ -62,9 +100,8 @@ export const updatePermissions = async (req, res, next) => {
 export const toggleStatus = async (req, res, next) => {
   try {
     const subAdmin = await subAdminService.toggleStatus(req.params.id);
-    res.status(200).json(
-      successResponse(subAdmin, `Sub-admin ${subAdmin.isActive ? 'activated' : 'deactivated'}`)
-    );
+    const label = subAdmin.isActive ? 'activated' : 'deactivated';
+    res.status(200).json(successResponse(subAdmin, `Sub-admin ${label} successfully`));
   } catch (err) {
     next(err);
   }

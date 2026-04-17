@@ -6,6 +6,7 @@ import {
   createSubAdmin,
   listSubAdmins,
   getSubAdmin,
+  getStats,
   updatePermissions,
   toggleStatus,
   deleteSubAdmin,
@@ -20,15 +21,20 @@ const router = Router();
 // All sub-admin management requires a valid JWT
 router.use(authMiddleware);
 
-// All sub-admin management is ONLY for role === "admin"
-// Sub-admins cannot manage other sub-admins
+// Only full admins can manage sub-admins (sub-admins cannot manage each other)
 router.use(roleMiddleware(['admin']));
 
-router.get('/',    listSubAdmins);
-router.post('/',   validate(createSubAdminSchema),    createSubAdmin);
-router.get('/:id', getSubAdmin);
-router.put('/:id/permissions', validate(updatePermissionsSchema), updatePermissions);
-router.patch('/:id/status',    toggleStatus);
-router.delete('/:id',          deleteSubAdmin);
+// ── Stats (must be declared before /:id to avoid route conflict) ───────────────
+router.get('/stats', getStats);
+
+// ── Collection routes ──────────────────────────────────────────────────────────
+router.get('/',  listSubAdmins);
+router.post('/', validate(createSubAdminSchema), createSubAdmin);
+
+// ── Document routes ────────────────────────────────────────────────────────────
+router.get('/:id',                    getSubAdmin);
+router.put('/:id/permissions',        validate(updatePermissionsSchema), updatePermissions);
+router.patch('/:id/status',           toggleStatus);
+router.delete('/:id',                 deleteSubAdmin);
 
 export default router;
