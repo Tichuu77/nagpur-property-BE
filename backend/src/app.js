@@ -13,23 +13,35 @@ const app = express();
 // Security
 app.use(helmet());
 
-// CORS
+// CORS — must come BEFORE any routes
 const allowedOrigins = env.ALLOWED_ORIGINS
   ? env.ALLOWED_ORIGINS.split(',').map((o) => o.trim())
   : [];
 
 app.use(
   cors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (mobile apps, curl, etc.)
+    origin: function (origin, callback) {
       if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) return callback(null, true);
-      callback(new Error('Not allowed by CORS'));
+
+      if (env.NODE_ENV !== 'production') {
+        return callback(null, true);
+      }
+
+      const allowedOrigins = env.ALLOWED_ORIGINS
+        ? env.ALLOWED_ORIGINS.split(',').map((o) => o.trim())
+        : [];
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
-
 // Body parsers
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true }));
