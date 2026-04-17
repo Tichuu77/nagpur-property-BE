@@ -1,25 +1,51 @@
 import StaticPage from '../../models/static-page.model.js';
 
+const ABOUT_DEFAULT_DATA = {
+  type: 'about',
+  version: '1.0.0',
+  tagline: 'Connecting Buyers with Trusted Brokers',
+  mission:
+    'PropertyConnect aims to simplify the property search experience by connecting buyers directly with verified and trusted real estate brokers. We believe in transparency, trust, and making homeownership accessible to everyone.',
+  whatWeOffer: [
+    'Thousands of verified property listings',
+    'Direct broker connections with OTP verification',
+    'Smart search with advanced filters',
+    'Save favorites and track enquiries',
+    'Price alerts and new listing notifications',
+  ],
+  stats: { properties: '10K+', brokers: '500+', users: '50K+', cities: '15+' },
+  contactInfo: {
+    website: 'www.propertyconnect.com',
+    email: 'info@propertyconnect.com',
+    phone: '+91 98765 43210',
+    address: 'Pune, Maharashtra, India',
+  },
+};
+
+const CONTACT_DEFAULT_DATA = {
+  type: 'contact',
+  phone: '+91 98765 43210',
+  email: 'support@propertyconnect.com',
+  whatsapp: '+91 98765 43210',
+  supportHours: 'Monday - Saturday, 9:00 AM - 7:00 PM IST',
+  faqs: [
+    { id: '1', question: 'How do I search for properties?', answer: 'Use the search bar and apply filters like location, budget, and property type.' },
+    { id: '2', question: 'How do I contact a broker?', answer: "Open any listing and tap \"Contact Broker\". You'll need to verify your mobile via OTP." },
+    { id: '3', question: 'What does saving a property do?', answer: 'Saved properties are stored in your favorites for easy access later.' },
+    { id: '4', question: 'Is my phone number shared with brokers?', answer: 'Only with brokers you explicitly contact through our enquiry form.' },
+    { id: '5', question: 'How do featured properties work?', answer: 'Featured properties get priority placement in search results and are verified by our team.' },
+    { id: '6', question: 'Can I schedule a property visit?', answer: 'Yes, after contacting a broker you can arrange a visit directly with them.' },
+  ],
+};
+
 // Default seeds for each page type
 const DEFAULT_PAGES = {
   'about-us': {
     slug: 'about-us',
-    title: 'About PropertyConnect',
+    title: 'About Us',
     metaTitle: 'About Us | PropertyConnect',
-    metaDescription: 'Learn about PropertyConnect, India\'s trusted real estate platform.',
-    content: `<h2>Welcome to PropertyConnect</h2>
-<p>PropertyConnect is India's leading real estate platform, connecting buyers with trusted, verified brokers across the country.</p>
-<h3>Our Mission</h3>
-<p>We aim to simplify the property search experience by bringing transparency, trust, and accessibility to real estate transactions.</p>
-<h3>What We Offer</h3>
-<ul>
-  <li>Thousands of verified property listings</li>
-  <li>Direct broker connections with OTP verification</li>
-  <li>Smart search with advanced filters</li>
-  <li>Price alerts and new listing notifications</li>
-</ul>
-<h3>Contact Us</h3>
-<p>Email: info@propertyconnect.com | Phone: +91 98765 43210</p>`,
+    metaDescription: "Learn about PropertyConnect, India's trusted real estate platform.",
+    content: JSON.stringify(ABOUT_DEFAULT_DATA),
     isPublished: true,
   },
   'privacy-policy': {
@@ -67,20 +93,7 @@ const DEFAULT_PAGES = {
     title: 'Help & Support',
     metaTitle: 'Contact Us | PropertyConnect',
     metaDescription: 'Get in touch with the PropertyConnect support team.',
-    content: `<h2>Help &amp; Support</h2>
-<p>We are here to help! Reach out to us through any of the following channels.</p>
-<h3>Contact Channels</h3>
-<ul>
-  <li><strong>Phone:</strong> +91 98765 43210</li>
-  <li><strong>Email:</strong> support@propertyconnect.com</li>
-  <li><strong>WhatsApp:</strong> Chat with us on WhatsApp</li>
-</ul>
-<h3>Support Hours</h3>
-<p>Monday - Saturday, 9:00 AM - 7:00 PM IST</p>
-<h3>Frequently Asked Questions</h3>
-<p><strong>How do I search for properties?</strong><br>Use the search bar and apply filters like location, budget, and property type.</p>
-<p><strong>How do I contact a broker?</strong><br>Open any listing and tap "Contact Broker". You'll need to verify your mobile via OTP.</p>
-<p><strong>Is my phone number shared with brokers?</strong><br>Only with brokers you explicitly contact through our enquiry form.</p>`,
+    content: JSON.stringify(CONTACT_DEFAULT_DATA),
     isPublished: true,
   },
 };
@@ -100,6 +113,35 @@ const staticPageService = {
 
     if (!page) {
       page = await StaticPage.create(DEFAULT_PAGES[slug]);
+    }
+
+    // Migrate old about-us / contact-us HTML to new JSON structure
+    if (slug === 'about-us') {
+      try {
+        const parsed = JSON.parse(page.content);
+        if (!parsed?.type) throw new Error('not structured');
+      } catch {
+        await StaticPage.findOneAndUpdate(
+          { slug },
+          { $set: { content: JSON.stringify(ABOUT_DEFAULT_DATA) } },
+          { new: true }
+        );
+        page = await StaticPage.findOne({ slug });
+      }
+    }
+
+    if (slug === 'contact-us') {
+      try {
+        const parsed = JSON.parse(page.content);
+        if (!parsed?.type) throw new Error('not structured');
+      } catch {
+        await StaticPage.findOneAndUpdate(
+          { slug },
+          { $set: { content: JSON.stringify(CONTACT_DEFAULT_DATA) } },
+          { new: true }
+        );
+        page = await StaticPage.findOne({ slug });
+      }
     }
 
     return page;
