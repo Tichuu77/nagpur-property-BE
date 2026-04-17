@@ -6,6 +6,8 @@ import checkPermission from '../../middlewares/check-permission.middleware.js';
 import adminAuthRoutes    from '../../modules/admin/v1/auth.routes.js';
 import adminProfileRoutes from '../../modules/admin/v1/profile.routes.js';
 import subAdminRoutes     from '../../modules/sub-admin/v1/sub-admin.routes.js';
+import staticPagesRoutes  from '../../modules/static-page/v1/static-pages.routes.js';
+import adminPagesRoutes   from '../../modules/static-page/v1/admin-pages.routes.js';
 
 // Existing module route handlers (add yours here as they are built)
 // import brokerRoutes       from '../../modules/broker/v1/broker.routes.js';
@@ -28,6 +30,12 @@ router.use('/admin/profile', adminProfileRoutes);
 
 // ─── Sub-admin management (admin role only, enforced inside sub-admin routes) ──
 router.use('/admin/sub-admins', subAdminRoutes);
+
+// ─── Static pages (public) ─────────────────────────────────────────────────────
+router.use('/pages', staticPagesRoutes);
+ 
+// ─── Static pages (admin CRUD) ─────────────────────────────────────────────────
+router.use('/admin/pages', adminPagesRoutes);
 
 // ─── Protected module routes ───────────────────────────────────────────────────
 // Pattern: authMiddleware → checkPermission(module) → module router
