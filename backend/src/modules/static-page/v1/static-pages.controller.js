@@ -3,8 +3,7 @@ import { successResponse } from '../../../utils/api-response.js';
 
 /**
  * GET /api/v1/pages/:slug
- * Public — fetches a single static page by slug
- * Slugs: about-us | privacy-policy | terms-and-conditions | contact-us
+ * Public — fetch a single static page
  */
 export const getPage = async (req, res, next) => {
   try {
@@ -17,7 +16,7 @@ export const getPage = async (req, res, next) => {
 
 /**
  * GET /api/v1/pages
- * Public — lists all published static pages (meta only)
+ * Public — list all static pages
  */
 export const listPages = async (req, res, next) => {
   try {
@@ -30,7 +29,8 @@ export const listPages = async (req, res, next) => {
 
 /**
  * PUT /api/v1/admin/pages/:slug
- * Admin only — update a static page's content
+ * Admin only — update page content
+ * Body: { title, content, metaTitle, metaDescription, isPublished }
  */
 export const updatePage = async (req, res, next) => {
   try {
@@ -43,12 +43,14 @@ export const updatePage = async (req, res, next) => {
 
 /**
  * POST /api/v1/admin/pages/seed
- * Admin only — seed all default page content
+ * Admin only — seed default pages
  */
 export const seedPages = async (req, res, next) => {
   try {
     const seeded = await staticPageService.seedDefaults();
-    res.status(200).json(successResponse(seeded, `Seeded ${seeded.length} pages`));
+    res.status(200).json(
+      successResponse(seeded, `Seeded ${seeded.length} pages successfully`)
+    );
   } catch (err) {
     next(err);
   }

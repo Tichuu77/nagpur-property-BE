@@ -1,172 +1,157 @@
 import StaticPage from '../../models/static-page.model.js';
 
-// Default content for seeding
-const DEFAULT_CONTENT = {
+// Default seeds for each page type
+const DEFAULT_PAGES = {
   'about-us': {
+    slug: 'about-us',
     title: 'About PropertyConnect',
-    version: '1.0.0',
-    tagline: 'Connecting Buyers with Trusted Brokers',
-    mission:
-      'PropertyConnect aims to simplify the property search experience by connecting buyers directly with verified and trusted real estate brokers. We believe in transparency, trust, and making homeownership accessible to everyone.',
-    features: [
-      'Thousands of verified property listings',
-      'Direct broker connections with OTP verification',
-      'Smart search with advanced filters',
-      'Save favorites and track enquiries',
-      'Price alerts and new listing notifications',
-    ],
-    stats: [
-      { label: 'Properties', value: '10K+' },
-      { label: 'Brokers', value: '500+' },
-      { label: 'Users', value: '50K+' },
-      { label: 'Cities', value: '15+' },
-    ],
-    contact: {
-      website: 'www.propertyconnect.com',
-      email: 'info@propertyconnect.com',
-      phone: '+91 98765 43210',
-      address: 'Pune, Maharashtra, India',
-    },
-    copyright: '© 2026 PropertyConnect. All rights reserved.',
+    metaTitle: 'About Us | PropertyConnect',
+    metaDescription: 'Learn about PropertyConnect, India\'s trusted real estate platform.',
+    content: `<h2>Welcome to PropertyConnect</h2>
+<p>PropertyConnect is India's leading real estate platform, connecting buyers with trusted, verified brokers across the country.</p>
+<h3>Our Mission</h3>
+<p>We aim to simplify the property search experience by bringing transparency, trust, and accessibility to real estate transactions.</p>
+<h3>What We Offer</h3>
+<ul>
+  <li>Thousands of verified property listings</li>
+  <li>Direct broker connections with OTP verification</li>
+  <li>Smart search with advanced filters</li>
+  <li>Price alerts and new listing notifications</li>
+</ul>
+<h3>Contact Us</h3>
+<p>Email: info@propertyconnect.com | Phone: +91 98765 43210</p>`,
+    isPublished: true,
   },
-
   'privacy-policy': {
+    slug: 'privacy-policy',
     title: 'Privacy Policy',
-    lastUpdated: 'March 15, 2026',
-    sections: [
-      {
-        heading: '1. Information We Collect',
-        body: 'We collect: (a) Phone number for OTP verification (b) Name provided during enquiry (c) Property search and browsing history (d) Saved properties and enquiry records (e) Device information and app usage analytics.',
-      },
-      {
-        heading: '2. How We Use Your Information',
-        body: 'Your information is used to: (a) Verify your identity via OTP (b) Facilitate broker communication (c) Personalize property recommendations (d) Improve our services (e) Send relevant notifications about properties and offers.',
-      },
-      {
-        heading: '3. Information Sharing',
-        body: 'We share your name and phone number ONLY with brokers you explicitly contact through the enquiry form. We never sell your data to third parties. Aggregated, anonymous data may be used for analytics.',
-      },
-      {
-        heading: '4. Data Security',
-        body: 'We implement industry-standard security measures including encryption of data in transit, secure server infrastructure, and regular security audits. OTP codes expire after 5 minutes.',
-      },
-      {
-        heading: '5. Your Rights',
-        body: 'You may request deletion of your account and associated data at any time by contacting support@propertyconnect.com. We will process your request within 30 days.',
-      },
-    ],
+    metaTitle: 'Privacy Policy | PropertyConnect',
+    metaDescription: 'Learn how PropertyConnect collects, uses, and protects your data.',
+    content: `<h2>Privacy Policy</h2>
+<p><strong>Last Updated: March 15, 2026</strong></p>
+<h3>1. Information We Collect</h3>
+<p>We collect phone numbers for OTP verification, names provided during enquiry, property search history, saved properties, and device analytics.</p>
+<h3>2. How We Use Your Information</h3>
+<p>Your information is used to verify identity, facilitate broker communication, personalize recommendations, and improve our services.</p>
+<h3>3. Information Sharing</h3>
+<p>We share your name and phone number ONLY with brokers you explicitly contact. We never sell your data to third parties.</p>
+<h3>4. Data Security</h3>
+<p>We implement industry-standard security measures including encryption in transit, secure infrastructure, and regular security audits.</p>
+<h3>5. Your Rights</h3>
+<p>You may request deletion of your account and associated data at any time by contacting support@propertyconnect.com.</p>`,
+    isPublished: true,
   },
-
   'terms-and-conditions': {
+    slug: 'terms-and-conditions',
     title: 'Terms & Conditions',
-    lastUpdated: 'March 15, 2026',
-    sections: [
-      {
-        heading: '1. Acceptance of Terms',
-        body: 'By accessing and using the PropertyConnect mobile application, you agree to be bound by these Terms and Conditions. If you do not agree to these terms, please do not use our services.',
-      },
-      {
-        heading: '2. Description of Service',
-        body: 'PropertyConnect is a platform that connects property buyers with registered real estate brokers. We provide a listing and discovery service only. We are not party to any transaction between buyers and brokers.',
-      },
-      {
-        heading: '3. User Accounts',
-        body: 'Users may browse properties without registration. To contact a broker, users must verify their mobile number via OTP. Users are responsible for maintaining the confidentiality of their account.',
-      },
-      {
-        heading: '4. Property Listings',
-        body: 'Property information is provided by registered brokers. While we strive for accuracy, PropertyConnect does not guarantee the completeness or accuracy of any listing. Users should verify all details independently.',
-      },
-      {
-        heading: '5. Prohibited Conduct',
-        body: 'Users must not misuse the platform, submit false enquiries, harass brokers, or attempt to bypass OTP verification. Violation may result in account termination.',
-      },
-      {
-        heading: '6. Limitation of Liability',
-        body: 'PropertyConnect is not liable for any transactions, disputes, or damages arising from interactions between users and brokers. All dealings are at the user\'s own risk.',
-      },
-    ],
+    metaTitle: 'Terms & Conditions | PropertyConnect',
+    metaDescription: 'Read the terms and conditions for using PropertyConnect.',
+    content: `<h2>Terms &amp; Conditions</h2>
+<p><strong>Last Updated: March 15, 2026</strong></p>
+<h3>1. Acceptance of Terms</h3>
+<p>By accessing PropertyConnect, you agree to be bound by these Terms and Conditions.</p>
+<h3>2. Description of Service</h3>
+<p>PropertyConnect is a platform that connects property buyers with registered real estate brokers. We are not party to any transaction.</p>
+<h3>3. User Accounts</h3>
+<p>Users may browse without registration. To contact a broker, users must verify their mobile number via OTP.</p>
+<h3>4. Property Listings</h3>
+<p>Property information is provided by registered brokers. Users should verify all details independently.</p>
+<h3>5. Prohibited Conduct</h3>
+<p>Users must not misuse the platform, submit false enquiries, harass brokers, or bypass OTP verification.</p>
+<h3>6. Limitation of Liability</h3>
+<p>PropertyConnect is not liable for any transactions or disputes arising from interactions between users and brokers.</p>`,
+    isPublished: true,
   },
-
   'contact-us': {
+    slug: 'contact-us',
     title: 'Help & Support',
-    channels: [
-      { type: 'phone', label: 'Call Us', value: '+91 98765 43210' },
-      { type: 'email', label: 'Email', value: 'support@propertyconnect.com' },
-      { type: 'whatsapp', label: 'WhatsApp', value: 'Chat with us' },
-    ],
-    faqs: [
-      { question: 'How do I search for properties?', answer: 'Use the search bar on the home screen and apply filters like location, budget, and property type to find your ideal property.' },
-      { question: 'How do I contact a broker?', answer: 'Open any property listing and tap the "Contact Broker" button. You will need to verify your mobile number via OTP to proceed.' },
-      { question: 'What does saving a property do?', answer: 'Saving a property adds it to your favorites list so you can easily revisit and compare properties later.' },
-      { question: 'Is my phone number shared with brokers?', answer: 'Your phone number is shared only with brokers you explicitly contact through our enquiry form. We never share it without your consent.' },
-      { question: 'How do featured properties work?', answer: 'Featured properties are premium listings that are highlighted at the top of search results for better visibility.' },
-      { question: 'Can I schedule a property visit?', answer: 'Yes, once you contact a broker, you can coordinate a visit directly through WhatsApp or phone.' },
-    ],
-    supportHours: 'Monday - Saturday, 9:00 AM - 7:00 PM IST',
+    metaTitle: 'Contact Us | PropertyConnect',
+    metaDescription: 'Get in touch with the PropertyConnect support team.',
+    content: `<h2>Help &amp; Support</h2>
+<p>We are here to help! Reach out to us through any of the following channels.</p>
+<h3>Contact Channels</h3>
+<ul>
+  <li><strong>Phone:</strong> +91 98765 43210</li>
+  <li><strong>Email:</strong> support@propertyconnect.com</li>
+  <li><strong>WhatsApp:</strong> Chat with us on WhatsApp</li>
+</ul>
+<h3>Support Hours</h3>
+<p>Monday - Saturday, 9:00 AM - 7:00 PM IST</p>
+<h3>Frequently Asked Questions</h3>
+<p><strong>How do I search for properties?</strong><br>Use the search bar and apply filters like location, budget, and property type.</p>
+<p><strong>How do I contact a broker?</strong><br>Open any listing and tap "Contact Broker". You'll need to verify your mobile via OTP.</p>
+<p><strong>Is my phone number shared with brokers?</strong><br>Only with brokers you explicitly contact through our enquiry form.</p>`,
+    isPublished: true,
   },
 };
 
+const VALID_SLUGS = Object.keys(DEFAULT_PAGES);
+
 const staticPageService = {
   /**
-   * Get a single page by slug. Seeds default content if not found.
+   * Get page by slug. Auto-seeds default if missing.
    */
   getBySlug: async (slug) => {
-    let page = await StaticPage.findOne({ slug, isPublished: true });
-
-    if (!page && DEFAULT_CONTENT[slug]) {
-      // Auto-seed on first access
-      page = await StaticPage.create({
-        slug,
-        title: DEFAULT_CONTENT[slug].title,
-        content: DEFAULT_CONTENT[slug],
-        lastUpdated: new Date('2026-03-15'),
-      });
+    if (!VALID_SLUGS.includes(slug)) {
+      throw { status: 400, message: `Invalid page slug: "${slug}"` };
     }
 
-    if (!page) throw { status: 404, message: `Page "${slug}" not found` };
+    let page = await StaticPage.findOne({ slug });
+
+    if (!page) {
+      page = await StaticPage.create(DEFAULT_PAGES[slug]);
+    }
+
     return page;
   },
 
   /**
-   * List all published pages (admin view)
+   * List all static pages.
    */
   listAll: async () => {
+    const pages = await StaticPage.find().sort({ slug: 1 });
+    // Seed missing ones
+    for (const slug of VALID_SLUGS) {
+      if (!pages.find((p) => p.slug === slug)) {
+        await StaticPage.create(DEFAULT_PAGES[slug]);
+      }
+    }
     return StaticPage.find().sort({ slug: 1 });
   },
 
   /**
-   * Update page content (admin only)
+   * Update page content (admin only).
    */
   update: async (slug, payload) => {
+    if (!VALID_SLUGS.includes(slug)) {
+      throw { status: 400, message: `Invalid page slug: "${slug}"` };
+    }
+
+    const allowed = ['title', 'content', 'metaTitle', 'metaDescription', 'isPublished'];
+    const update = {};
+    for (const key of allowed) {
+      if (payload[key] !== undefined) update[key] = payload[key];
+    }
+    update.lastUpdated = new Date();
+
     const page = await StaticPage.findOneAndUpdate(
       { slug },
-      {
-        $set: {
-          ...payload,
-          lastUpdated: new Date(),
-        },
-      },
+      { $set: update },
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
+
     return page;
   },
 
   /**
-   * Seed all default pages (utility)
+   * Seed all defaults.
    */
   seedDefaults: async () => {
     const results = [];
-    for (const [slug, content] of Object.entries(DEFAULT_CONTENT)) {
+    for (const [slug, data] of Object.entries(DEFAULT_PAGES)) {
       const existing = await StaticPage.findOne({ slug });
       if (!existing) {
-        const created = await StaticPage.create({
-          slug,
-          title: content.title,
-          content,
-          lastUpdated: new Date('2026-03-15'),
-        });
-        results.push(created);
+        results.push(await StaticPage.create(data));
       }
     }
     return results;
