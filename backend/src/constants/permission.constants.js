@@ -11,7 +11,6 @@ export const MODULES_ENUMS =
         'analytics',
         'plans',
         'notifications',
-        'settings',
     ]
 
 
