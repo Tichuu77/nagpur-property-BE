@@ -1,6 +1,4 @@
 import { Router } from 'express';
-import authMiddleware from '../../middlewares/auth.middleware.js';
-import checkPermission from '../../middlewares/check-permission.middleware.js';
 
 // Module routers
 import adminAuthRoutes    from '../../modules/admin/v1/auth.routes.js';
@@ -10,7 +8,7 @@ import staticPagesRoutes  from '../../modules/static-page/v1/static-pages.routes
 import adminPagesRoutes   from '../../modules/static-page/v1/admin-pages.routes.js';
 
 // Existing module route handlers (add yours here as they are built)
-// import brokerRoutes       from '../../modules/broker/v1/broker.routes.js';
+import brokerRoutes       from '../../modules/broker/v1/broker.routes.js';
 // import customerRoutes     from '../../modules/customer/v1/customer.routes.js';
 // import propertyRoutes     from '../../modules/property/v1/property.routes.js';
 // import leadRoutes         from '../../modules/lead/v1/lead.routes.js';
@@ -43,7 +41,7 @@ router.use('/admin/pages', adminPagesRoutes);
 // Uncomment and wire up each module as its router is created.
 // The checkPermission middleware handles both admin (pass-through) and sub-admin (DB check).
 
-// router.use('/admin/brokers',       authMiddleware, checkPermission('brokers'),       brokerRoutes);
+router.use('/admin/brokers',  brokerRoutes);
 // router.use('/admin/customers',     authMiddleware, checkPermission('customers'),     customerRoutes);
 // router.use('/admin/properties',    authMiddleware, checkPermission('properties'),    propertyRoutes);
 // router.use('/admin/leads',         authMiddleware, checkPermission('leads'),         leadRoutes);
