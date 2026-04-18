@@ -2,12 +2,13 @@ import brokerRepository from './broker.repository.js';
 
 const brokerService = {
   createBroker: async (payload) => {
+    // Uniqueness checks
     if (payload.mobile) {
       const existing = await brokerRepository.findByMobile(payload.mobile);
       if (existing) throw { status: 409, message: 'Mobile number already registered' };
     }
-    if (payload.email) {
-      const existing = await brokerRepository.findByEmail(payload.email);
+    if (payload.email && payload.email.trim()) {
+      const existing = await brokerRepository.findByEmail(payload.email.trim());
       if (existing) throw { status: 409, message: 'Email already registered' };
     }
     return brokerRepository.create(payload);
@@ -27,12 +28,13 @@ const brokerService = {
     const broker = await brokerRepository.findById(id);
     if (!broker) throw { status: 404, message: 'Broker not found' };
 
+    // Check uniqueness only if value changed
     if (payload.mobile && payload.mobile !== broker.mobile) {
       const existing = await brokerRepository.findByMobile(payload.mobile);
       if (existing) throw { status: 409, message: 'Mobile number already in use' };
     }
-    if (payload.email && payload.email !== broker.email) {
-      const existing = await brokerRepository.findByEmail(payload.email);
+    if (payload.email && payload.email.trim() && payload.email.trim() !== broker.email) {
+      const existing = await brokerRepository.findByEmail(payload.email.trim());
       if (existing) throw { status: 409, message: 'Email already in use' };
     }
 

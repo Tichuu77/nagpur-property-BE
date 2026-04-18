@@ -18,10 +18,12 @@ const brokerRepository = {
         { mobile: { $regex: search.trim(), $options: 'i' } },
         { email:  { $regex: search.trim(), $options: 'i' } },
         { area:   { $regex: search.trim(), $options: 'i' } },
+        { city:   { $regex: search.trim(), $options: 'i' } },
       ];
     }
 
-    if (isActive !== undefined && isActive !== 'all') {
+    // isActive query param: "active" | "inactive" | "all" (or omitted)
+    if (isActive && isActive !== 'all') {
       filter.isActive = isActive === 'active';
     }
 
@@ -30,7 +32,11 @@ const brokerRepository = {
     const skip      = (safePage - 1) * safeLimit;
 
     const [data, total] = await Promise.all([
-      Broker.find(filter).sort({ createdAt: -1 }).skip(skip).limit(safeLimit),
+      Broker.find(filter)
+        .select('-fcmToken')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(safeLimit),
       Broker.countDocuments(filter),
     ]);
 
@@ -43,7 +49,8 @@ const brokerRepository = {
     };
   },
 
-  updateById: (id, update) => Broker.findByIdAndUpdate(id, update, { new: true }),
+  updateById: (id, update) =>
+    Broker.findByIdAndUpdate(id, { $set: update }, { new: true, runValidators: true }),
 
   deleteById: (id) => Broker.findByIdAndDelete(id),
 

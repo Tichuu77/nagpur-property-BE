@@ -1,6 +1,9 @@
 import brokerService from '../broker.service.js';
 import { successResponse } from '../../../utils/api-response.js';
 
+/**
+ * POST /api/v1/admin/brokers
+ */
 export const createBroker = async (req, res, next) => {
   try {
     const broker = await brokerService.createBroker(req.body);
@@ -10,6 +13,9 @@ export const createBroker = async (req, res, next) => {
   }
 };
 
+/**
+ * GET /api/v1/admin/brokers?search=&isActive=&page=1&limit=10
+ */
 export const listBrokers = async (req, res, next) => {
   try {
     const { search, isActive, page = 1, limit = 10 } = req.query;
@@ -22,18 +28,25 @@ export const listBrokers = async (req, res, next) => {
     });
 
     res.status(200).json(
-      successResponse(result.data, 'Brokers fetched successfully', {
-        total:      result.total,
-        page:       result.page,
-        limit:      result.limit,
-        totalPages: result.totalPages,
-      })
+      successResponse(
+        result.data,
+        'Brokers fetched successfully',
+        {
+          total:      result.total,
+          page:       result.page,
+          limit:      result.limit,
+          totalPages: result.totalPages,
+        }
+      )
     );
   } catch (err) {
     next(err);
   }
 };
 
+/**
+ * GET /api/v1/admin/brokers/stats
+ */
 export const getStats = async (req, res, next) => {
   try {
     const stats = await brokerService.getStats();
@@ -43,6 +56,9 @@ export const getStats = async (req, res, next) => {
   }
 };
 
+/**
+ * GET /api/v1/admin/brokers/:id
+ */
 export const getBroker = async (req, res, next) => {
   try {
     const broker = await brokerService.getBroker(req.params.id);
@@ -52,6 +68,9 @@ export const getBroker = async (req, res, next) => {
   }
 };
 
+/**
+ * PUT /api/v1/admin/brokers/:id
+ */
 export const updateBroker = async (req, res, next) => {
   try {
     const broker = await brokerService.updateBroker(req.params.id, req.body);
@@ -61,6 +80,9 @@ export const updateBroker = async (req, res, next) => {
   }
 };
 
+/**
+ * DELETE /api/v1/admin/brokers/:id
+ */
 export const deleteBroker = async (req, res, next) => {
   try {
     await brokerService.deleteBroker(req.params.id);
@@ -70,6 +92,9 @@ export const deleteBroker = async (req, res, next) => {
   }
 };
 
+/**
+ * PATCH /api/v1/admin/brokers/:id/status
+ */
 export const toggleStatus = async (req, res, next) => {
   try {
     const broker = await brokerService.toggleStatus(req.params.id);
