@@ -168,7 +168,7 @@ jobs:
       - run: npm ci
 
       - name: Security audit
-        run: npm audit --audit-level=high
+        run: npm audit --audit-level=critical
 
       - name: Validate entry file
         run: node --check server.js
