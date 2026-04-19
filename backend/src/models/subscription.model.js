@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const planSchema = new mongoose.Schema({
   name: { type: String, required: true, unique: true }, // e.g., 'Premium Gold'
@@ -23,3 +23,5 @@ const planSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 const Plan = mongoose.model('Plan', planSchema);
+
+export default Plan;

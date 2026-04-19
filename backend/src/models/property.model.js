@@ -1,5 +1,4 @@
-const mongoose = require('mongoose');
-
+import mongoose from 'mongoose';
 const propertySchema = new mongoose.Schema({
   // --------------------------------------------------------
   // 1. BASIC INFORMATION (Common to ALL)
@@ -181,4 +180,5 @@ propertySchema.pre('save', function(next) {
   next();
 });
 
-module.exports = mongoose.model('Property', propertySchema);
+const Property = mongoose.model('Property', propertySchema);
+export default Property;

@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const leadSchema = new mongoose.Schema({
   customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true },
@@ -42,4 +42,7 @@ const leadSchema = new mongoose.Schema({
 
 // Optional: Indexing for faster search performance on phone numbers and status
 leadSchema.index({ status: 1 });
-module.exports = mongoose.model('Lead', leadSchema);
+ 
+const Lead = mongoose.model('Lead', leadSchema);
+
+export default Lead;

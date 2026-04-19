@@ -30,7 +30,7 @@ const MAX_FIRST_NAME_LENGTH_MESSAGE = `First name cannot exceed ${MAX_FIRST_NAME
 
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
-const PHONE_REGEX = /^(\+91[\-\s]?)?(\d{10})$/;
+const PHONE_REGEX = /^(\+91[-\s]?)?(\d{10})$/;
 
 const EMAIL_REGEX_MESSAGE = 'Please enter a valid email address';
 
