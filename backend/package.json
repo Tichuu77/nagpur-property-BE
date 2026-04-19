@@ -12,7 +12,9 @@
     "start": "node server.js",
     "test": "node --test",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "test:unit": "cross-env NODE_OPTIONS=--experimental-vm-modules jest unit",
+    "test:integration": "cross-env NODE_OPTIONS=--experimental-vm-modules jest integration"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1028.0",
@@ -41,9 +43,12 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@jest/globals": "^30.3.0",
+    "cross-env": "^10.1.0",
     "eslint": "^9.39.0",
+    "jest": "^30.3.0",
     "nodemon": "^3.1.10",
     "prettier": "^3.6.2",
-    "supertest": "^7.1.4"
+    "supertest": "^7.2.2"
   }
 }
