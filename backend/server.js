@@ -2,6 +2,7 @@ import { createServer } from 'node:http';
 import app from './src/app.js';
 import env from './src/config/env.js';
 import connectDB from './src/config/db.js';
+import './src/workers/mail.worker.js';
 
 const server = createServer(app);
 

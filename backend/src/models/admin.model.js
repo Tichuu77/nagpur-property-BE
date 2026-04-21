@@ -36,7 +36,7 @@ const adminSchema = new mongoose.Schema({
     },
     lastName: {
         type: String,
-        trim : true,
+        trim: true,
         required: [true, 'Last name is required'],
         minlength: [MIN_LAST_NAME_LENGTH, MIN_LAST_NAME_LENGTH_MESSAGE],
         maxlength: [MAX_LAST_NAME_LENGTH, MAX_LAST_NAME_LENGTH_MESSAGE]
@@ -71,6 +71,8 @@ const adminSchema = new mongoose.Schema({
         required: [true, 'Role is required']
     },
     otp: { type: String, select: false },
+    resetToken: { type: String, select: false },
+    resetTokenExpiry: { type: Date, select: false },
     otpExpiry: { type: Date, select: false },
     otpToken: { type: String, select: false },
     isActive: { type: Boolean, default: true },
@@ -86,6 +88,13 @@ adminSchema.pre('save', async function (next) {
     this.password = await bcrypt.hash(this.password, 10);
     next();
 });
+
+adminSchema.methods.generateResetToken = function () {
+  const rawToken = crypto.randomBytes(32).toString('hex');
+  this.resetToken = crypto.createHash('sha256').update(rawToken).digest('hex');
+  this.resetTokenExpiry = Date.now() + 20 * 60 * 1000; // 20 minutes
+  return rawToken; // send raw token in email, store hashed
+};
 
 adminSchema.methods.comparePassword = async function (password) {
     if (!this.password) throw new Error('Password not selected');
@@ -111,7 +120,7 @@ adminSchema.methods.verifyOTP = function (otp) {
 };
 
 adminSchema.methods.generateToken = function () {
-    return jwt.sign({ id: this._id, role: this.role,isActive: this.isActive }, env.JWT_SECRET, { expiresIn: '1d' });
+    return jwt.sign({ id: this._id, role: this.role, isActive: this.isActive }, env.JWT_SECRET, { expiresIn: '1d' });
 };
 
 const Admin = mongoose.model('Admin', adminSchema);

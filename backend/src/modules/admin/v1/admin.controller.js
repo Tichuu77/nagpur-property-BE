@@ -54,10 +54,9 @@ export const updatePassword = async (req, res, next) => {
 
 export const resetPassword = async (req, res, next) => {
   try {
-    const data = await  AdminService.resetPassword(req.body.email, req.body.otp, req.body.newPassword);
-    res.status(200).json(successResponse(data));
+    await AdminService.resetPassword(req.body.token, req.body.newPassword);
+    res.status(200).json(successResponse(null, 'Password reset successfully'));
   } catch (err) {
     next(err);
   }
 };
-

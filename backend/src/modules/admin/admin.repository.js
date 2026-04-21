@@ -14,6 +14,15 @@ const adminRepository = {
   findByIdWithPassword: (id) => admin.findById(id).select('+password'),
 
   update: (id, update) => admin.findByIdAndUpdate(id, update, { new: true }),
+
+  findByEmailWithResetToken: (email) =>
+  admin.findOne({ email }).select('+resetToken +resetTokenExpiry'),
+
+  findByResetToken: (hashedToken) =>
+  admin.findOne({
+    resetToken: hashedToken,
+    resetTokenExpiry: { $gt: Date.now() },
+  }).select('+resetToken +resetTokenExpiry'),
 };
 
 export default  adminRepository;

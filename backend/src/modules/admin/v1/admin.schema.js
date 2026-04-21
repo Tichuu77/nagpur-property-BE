@@ -75,13 +75,16 @@ const adminForgotPasswordSchema = z.object({
 })
 
 const resetPasswordSchema = z.object({
-    email: z.string().email(),
-    otp: z.string(),
-    newPassword:
-        z.string()
-            .min(MIN_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH_MESSAGE)
-            .max(MAX_PASSWORD_LENGTH, MAX_PASSWORD_LENGTH_MESSAGE),
-})
+    token: z.string().min(1, 'Reset token is required'),
+    newPassword: z
+        .string()
+        .min(MIN_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH_MESSAGE)
+        .max(MAX_PASSWORD_LENGTH, MAX_PASSWORD_LENGTH_MESSAGE),
+    confirmPassword: z.string(),
+}).refine((d) => d.newPassword === d.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+});
 
 export {
     adminLoginSchema,
