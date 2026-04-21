@@ -47,6 +47,17 @@ const mailService = {
       html,
     });
   },
+  sendPasswordResetEmail: async (to, resetLink) => {
+    const { subject, html } = passwordResetTemplate(to, resetLink);
+
+    return mailService.send({
+      to,
+      subject,
+      html,
+    });
+  },
 };
+
+
 
 export default mailService;
