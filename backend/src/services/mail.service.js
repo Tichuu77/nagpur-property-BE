@@ -1,7 +1,7 @@
 import initMailer from '../config/mailer.js';
 import { otpTemplate } from '../templates/email/otp.template.js';
 import { welcomeTemplate } from '../templates/email/welcome.template.js';
-
+import { passwordResetTemplate } from '../templates/email/passwordReset.template.js';
 const mailService = {
   // Generic send
   send: async ({ to, subject, html, text }) => {
