@@ -54,7 +54,7 @@ export const updatePassword = async (req, res, next) => {
 
 export const resetPassword = async (req, res, next) => {
   try {
-    await AdminService.resetPassword(req.body.token, req.body.newPassword);
+    await AdminService.resetPassword(req.body.token, req.body.newPassword, req.body.confirmPassword);
     res.status(200).json(successResponse(null, 'Password reset successfully'));
   } catch (err) {
     next(err);
