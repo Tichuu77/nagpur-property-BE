@@ -130,8 +130,12 @@ const AdminService = {
    * resetPassword
    * Verifies the raw token against the stored hash, updates the password.
    */
-  resetPassword: async (token, newPassword) => {
+  resetPassword: async (token, newPassword, confirmPassword) => {
     if (!token) throw { status: 400, message: 'Reset token is required' };
+
+    if (newPassword !== confirmPassword) {
+      throw { status: 400, message: 'Passwords do not match' };
+    }
 
     const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
     const adminDoc = await AdminRepository.findByResetToken(hashedToken);

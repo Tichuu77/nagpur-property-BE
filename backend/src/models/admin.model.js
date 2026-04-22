@@ -70,11 +70,8 @@ const adminSchema = new mongoose.Schema({
         enum: { values: ADMIN_ROLLS_ENUM, message: INVALID_ROLE_MESSAGE },
         required: [true, 'Role is required']
     },
-    otp: { type: String, select: false },
     resetToken: { type: String, select: false },
     resetTokenExpiry: { type: Date, select: false },
-    otpExpiry: { type: Date, select: false },
-    otpToken: { type: String, select: false },
     isActive: { type: Boolean, default: true },
     avatar: { type: String },
 },
@@ -101,23 +98,6 @@ adminSchema.methods.comparePassword = async function (password) {
     return bcrypt.compare(password, this.password);
 };
 
-adminSchema.methods.generateOTP = function () {
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
-    this.otpToken = crypto.createHash('sha256').update(otp).digest('hex');
-    this.otpExpiry = Date.now() + 10 * 60 * 1000;
-
-    return otp;
-};
-
-adminSchema.methods.verifyOTP = function (otp) {
-    console.log(this.otpToken, otp);
-    console.log(this.otpExpiry, Date.now());
-    const hashed = crypto.createHash('sha256').update(otp).digest('hex');
-    console
-
-    return this.otpToken === hashed && this.otpExpiry > Date.now();
-};
 
 adminSchema.methods.generateToken = function () {
     return jwt.sign({ id: this._id, role: this.role, isActive: this.isActive }, env.JWT_SECRET, { expiresIn: '1d' });
