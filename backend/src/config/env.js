@@ -35,6 +35,9 @@ const env = {
   // CORS
   ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS || 'http://localhost:3000',
 
+  // Frontend URL (used for reset-password links in emails)
+  FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:3000',
+
   // S3
   S3_REGION: process.env.S3_REGION || 'ap-south-1',
   S3_ENDPOINT: process.env.S3_ENDPOINT || '',

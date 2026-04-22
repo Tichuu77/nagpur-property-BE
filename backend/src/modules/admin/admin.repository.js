@@ -16,13 +16,19 @@ const adminRepository = {
   update: (id, update) => admin.findByIdAndUpdate(id, update, { new: true }),
 
   findByEmailWithResetToken: (email) =>
-  admin.findOne({ email }).select('+resetToken +resetTokenExpiry'),
+    admin.findOne({ email }).select('+resetToken +resetTokenExpiry'),
 
+  /**
+   * Find an admin whose stored (hashed) reset token matches `hashedToken`
+   * and whose token expiry is still in the future.
+   */
   findByResetToken: (hashedToken) =>
-  admin.findOne({
-    resetToken: hashedToken,
-    resetTokenExpiry: { $gt: Date.now() },
-  }).select('+resetToken +resetTokenExpiry'),
+    admin
+      .findOne({
+        resetToken: hashedToken,
+        resetTokenExpiry: { $gt: Date.now() },
+      })
+      .select('+password +resetToken +resetTokenExpiry'),
 };
 
-export default  adminRepository;
+export default adminRepository;

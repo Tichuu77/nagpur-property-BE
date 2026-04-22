@@ -1,11 +1,10 @@
 import AdminRepository from './admin.repository.js';
 import storageService from '../../services/storage.service.js';
 import subAdminService from '../sub-admin/sub-admin.service.js';
-// At top of admin.service.js, add these imports:
 import crypto from 'crypto';
 import mailQueue from '../../queues/mail.queue.js';
 import { passwordResetTemplate } from '../../templates/email/passwordReset.template.js';
-
+import env from '../../config/env.js';
 
 const AdminService = {
   getProfile: async (adminId) => {
@@ -19,15 +18,13 @@ const AdminService = {
     if (file) {
       const uploaded = await storageService.upload(file, 'avatars');
       if (uploaded) {
-        const { avatar: oldAvatar } = await AdminRepository.findById(adminId);
-        if (oldAvatar) {
-          const key = oldAvatar.startsWith("/") ? oldAvatar.slice(1) : oldAvatar;
+        const existingAdmin = await AdminRepository.findById(adminId);
+        if (existingAdmin?.avatar) {
+          const key = existingAdmin.avatar.startsWith('/') ? existingAdmin.avatar.slice(1) : existingAdmin.avatar;
           await storageService.delete(key);
         }
-
         avatar = uploaded?.url;
       }
-
     }
     const admin = await AdminRepository.update(
       adminId,
@@ -37,12 +34,13 @@ const AdminService = {
     if (!admin) throw { status: 401, message: 'Unauthorized' };
     return admin;
   },
+
   /**
-     * Login
-     * Returns: { token, role, permissions }
-     *   - permissions is a flat map for sub-admins: { module: { read, write, delete } }
-     *   - permissions is null for full admin (frontend treats null as "all allowed")
-     */
+   * Login
+   * Returns: { token, role, permissions, admin }
+   *   - permissions is a flat map for sub-admins: { module: { read, write, delete } }
+   *   - permissions is null for full admin (frontend treats null as "all allowed")
+   */
   login: async ({ email, password }) => {
     const admin = await AdminRepository.findByEmailWithPassword(email);
     if (!admin) throw { status: 401, message: 'Invalid email or password' };
@@ -93,36 +91,62 @@ const AdminService = {
     return admin;
   },
 
- // forgotPassword
-forgotPassword: async (email) => {
-  const admin = await AdminRepository.findByEmail(email);
-  if (!admin) return; // silent — no email enumeration
+  /**
+   * forgotPassword
+   * Generates a reset token, stores its hash, queues a reset-link email.
+   * Always resolves successfully (no email enumeration).
+   */
+  forgotPassword: async (email) => {
+    const admin = await AdminRepository.findByEmail(email);
 
-  const rawToken = admin.generateResetToken();
-  await admin.save();
+    console.log('Forgot password requested for email:', email, 'Admin found:', admin);
+    // Return silently even if admin not found — prevents email enumeration
+    if (!admin) return null;
 
-  const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${rawToken}`;
-  const { subject, html } = passwordResetTemplate(admin.firstName, resetLink);
+    const rawToken = admin.generateResetToken();
+    await admin.save();
 
-  await mailQueue.add('password-reset', { to: admin.email, subject, html }, {
-    attempts: 3,
-    backoff: { type: 'exponential', delay: 5000 },
-  });
-},
+    const frontendUrl = env.FRONTEND_URL || 'http://localhost:3000';
+    const resetLink = `${frontendUrl}/reset-password?token=${rawToken}`;
+    const { subject, html } = passwordResetTemplate(admin.firstName, resetLink);
 
-// resetPassword
-resetPassword: async (token, newPassword) => {
-  const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
-  const adminDoc = await AdminRepository.findByResetToken(hashedToken);
+    console.log('Queuing password reset email for email:', email, 'Reset link:', resetLink);
 
-  if (!adminDoc) {
-    throw { status: 400, message: 'Reset link is invalid or has expired' };
-  }
+    const job = await mailQueue.add(
+      'password-reset',
+      { to: admin.email, subject, html },
+      {
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 5000 },
+      }
+    );
 
-  adminDoc.password = newPassword;
-  adminDoc.resetToken = undefined;
-  adminDoc.resetTokenExpiry = undefined;
-  await adminDoc.save();
-},
+    console.log('Queued password reset email for email:', email, 'Job ID:', job.id);
+
+    return null;
+  },
+
+  /**
+   * resetPassword
+   * Verifies the raw token against the stored hash, updates the password.
+   */
+  resetPassword: async (token, newPassword) => {
+    if (!token) throw { status: 400, message: 'Reset token is required' };
+
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+    const adminDoc = await AdminRepository.findByResetToken(hashedToken);
+
+    if (!adminDoc) {
+      throw { status: 400, message: 'Reset link is invalid or has expired' };
+    }
+
+    adminDoc.password = newPassword;
+    adminDoc.resetToken = undefined;
+    adminDoc.resetTokenExpiry = undefined;
+    await adminDoc.save();
+
+    return null;
+  },
 };
+
 export default AdminService;

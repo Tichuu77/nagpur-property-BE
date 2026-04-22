@@ -2,7 +2,7 @@ import { createServer } from 'node:http';
 import app from './src/app.js';
 import env from './src/config/env.js';
 import connectDB from './src/config/db.js';
-import './src/workers/mail.worker.js';
+import { closeMailWorker } from './src/workers/mail.worker.js';
 
 const server = createServer(app);
 
@@ -11,27 +11,39 @@ const startServer = async () => {
     await connectDB();
 
     server.listen(env.PORT, () => {
-      console.log(`Server running on port ${env.PORT}`);
+      console.log(`Server running on port ${env.PORT} [${env.NODE_ENV}]`);
     });
   } catch (error) {
-    console.error('Server startup error:', error);
+    console.error('Server startup error:', error.message);
     process.exit(1);
   }
 };
- 
-const shutdown = (signal) => {
-  console.log(`Received ${signal}. Shutting down...`);
 
-  server.close(() => {
-    console.log('Server closed');
+const shutdown = async (signal) => {
+  console.log(`Received ${signal}. Shutting down gracefully…`);
+
+  // Stop accepting new connections
+  server.close(async () => {
+    try {
+      // Wait for in-flight mail jobs to finish before disconnecting
+      await closeMailWorker();
+      console.log('All workers closed. Exiting.');
+    } catch (err) {
+      console.error('Error during shutdown:', err.message);
+    }
     process.exit(0);
   });
+
+  // Force exit after 15 seconds if graceful shutdown stalls
+  setTimeout(() => {
+    console.error('Forced shutdown after timeout');
+    process.exit(1);
+  }, 15_000);
 };
 
-process.on('SIGINT', shutdown);
-process.on('SIGTERM', shutdown);
+process.on('SIGINT', () => shutdown('SIGINT'));
+process.on('SIGTERM', () => shutdown('SIGTERM'));
 
- 
 process.on('unhandledRejection', (err) => {
   console.error('Unhandled Rejection:', err);
   process.exit(1);
