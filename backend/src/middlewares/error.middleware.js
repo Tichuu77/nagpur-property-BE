@@ -3,7 +3,7 @@ import env from "../config/env.js";
 import logger from "../utils/logger.js";
 
 
-export default function errorMiddleware(err, req, res) {
+export default function errorMiddleware(err, req, res, _next) {
   const status = err.statusCode || err.status || 500;
   const isProd = env.NODE_ENV === "production";
   const isTest = env.NODE_ENV === "test";
