@@ -3,6 +3,7 @@ import app from './src/app.js';
 import env from './src/config/env.js';
 import connectDB from './src/config/db.js';
 import { closeMailWorker } from './src/workers/mail.worker.js';
+import { setTimeout } from 'node:timers/promises';
 
 const server = createServer(app);
 
