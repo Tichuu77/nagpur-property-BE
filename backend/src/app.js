@@ -13,11 +13,7 @@ const app = express();
 // Security
 app.use(helmet());
 
-// CORS — must come BEFORE any routes
-const allowedOrigins = env.ALLOWED_ORIGINS
-  ? env.ALLOWED_ORIGINS.split(',').map((o) => o.trim())
-  : [];
-
+ 
 app.use(
   cors({
     origin: function (origin, callback) {

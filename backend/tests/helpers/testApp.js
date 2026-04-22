@@ -19,6 +19,7 @@ export function createTestApp() {
   app.use(cors({ origin: "*" }));
   app.use(express.json({ limit: "10kb" }));
   app.use(express.urlencoded({ extended: true }));
+  app.use(apiLimiter);
 
   // Health check
   app.get("/health", (_req, res) => {
