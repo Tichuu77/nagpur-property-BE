@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const brokerSchema = new mongoose.Schema(
+const userSchema = new mongoose.Schema(
   {
     name: {
       type: String,
@@ -52,4 +52,4 @@ const brokerSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export default mongoose.model('Broker', brokerSchema);
+export default mongoose.model('User', userSchema);

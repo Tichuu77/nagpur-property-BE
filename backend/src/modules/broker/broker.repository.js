@@ -1,4 +1,4 @@
-import Broker from '../../models/broker.model.js';
+import Broker from '../../models/user.model.js';
 
 const brokerRepository = {
   create: (payload) => Broker.create(payload),
