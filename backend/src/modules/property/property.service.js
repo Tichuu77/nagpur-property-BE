@@ -107,7 +107,7 @@ const propertyService = {
         property.photos.map((url) => {
           // Extract S3 key from URL
           try {
-            const key = new URL(url).pathname.replace(/^\/[^/]+\//, '');
+            const key =  url.startsWith('/') ? url.slice(1) : url;
             return storageService.delete(key);
           } catch {
             return Promise.resolve();
@@ -169,7 +169,7 @@ const propertyService = {
     await Promise.allSettled(
       photoUrls.map((url) => {
         try {
-          const key = new URL(url).pathname.replace(/^\/[^/]+\//, '');
+          const key = url.startsWith('/') ? url.slice(1) : url;
           return storageService.delete(key);
         } catch {
           return Promise.resolve();
