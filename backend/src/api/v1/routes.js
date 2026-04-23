@@ -9,8 +9,10 @@ import adminPagesRoutes   from '../../modules/static-page/v1/admin-pages.routes.
 
 // Existing module route handlers (add yours here as they are built)
 import brokerRoutes       from '../../modules/broker/v1/broker.routes.js';
+import propertyRoutes     from '../../modules/property/v1/property.routes.js';
+import userRoutes       from '../../modules/user/v1/user.routes.js';
+ 
 // import customerRoutes     from '../../modules/customer/v1/customer.routes.js';
-// import propertyRoutes     from '../../modules/property/v1/property.routes.js';
 // import leadRoutes         from '../../modules/lead/v1/lead.routes.js';
 // import planRoutes         from '../../modules/plans/v1/plan.routes.js';
 // import notificationRoutes from '../../modules/notification/v1/notification.routes.js';
@@ -42,12 +44,7 @@ router.use('/admin/pages', adminPagesRoutes);
 // The checkPermission middleware handles both admin (pass-through) and sub-admin (DB check).
 
 router.use('/admin/brokers',  brokerRoutes);
-// router.use('/admin/customers',     authMiddleware, checkPermission('customers'),     customerRoutes);
-// router.use('/admin/properties',    authMiddleware, checkPermission('properties'),    propertyRoutes);
-// router.use('/admin/leads',         authMiddleware, checkPermission('leads'),         leadRoutes);
-// router.use('/admin/plans',         authMiddleware, checkPermission('plans'),         planRoutes);
-// router.use('/admin/notifications', authMiddleware, checkPermission('notifications'), notificationRoutes);
-// router.use('/admin/revenue',       authMiddleware, checkPermission('revenue'),       revenueRoutes);
-// router.use('/admin/analytics',     authMiddleware, checkPermission('analytics'),     analyticsRoutes);
+router.use('/admin/properties',  propertyRoutes);
+router.use('/admin/users',  userRoutes);
 
 export default router;
