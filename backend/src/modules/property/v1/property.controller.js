@@ -77,7 +77,9 @@ export const createProperty = async (req, res, next) => {
       // Nested objects may arrive as strings from multipart
       ['details', 'pricing', 'location', 'amenities'].forEach((key) => {
         if (typeof body[key] === 'string') {
-          try { body[key] = JSON.parse(body[key]); } catch {}
+          try { body[key] = JSON.parse(body[key]); } catch {
+            return next({ status: 400, message: `Invalid JSON in ${key} field` });
+          }
         }
       });
     }
@@ -113,7 +115,9 @@ export const updateProperty = async (req, res, next) => {
       body = req.body;
       ['details', 'pricing', 'location', 'amenities'].forEach((key) => {
         if (typeof body[key] === 'string') {
-          try { body[key] = JSON.parse(body[key]); } catch {}
+          try { body[key] = JSON.parse(body[key]); } catch {
+            return next({ status: 400, message: `Invalid JSON in ${key} field` });
+          }
         }
       });
     }
