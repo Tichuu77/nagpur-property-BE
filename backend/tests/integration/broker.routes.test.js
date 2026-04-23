@@ -10,7 +10,7 @@ import request from "supertest";
 import { createTestApp } from "../helpers/testApp.js";
 import { connectTestDb, disconnectTestDb, clearCollections } from "../helpers/testDb.js";
 import Admin from "../../src/models/admin.model.js";
-import Broker from "../../src/models/broker.model.js";
+import Broker from "../../src/models/user.model.js";
 
 const app = createTestApp();
 let authToken = "";
