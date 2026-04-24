@@ -3,7 +3,7 @@ export const MODULES_ENUMS =
     [
         'dashboard',
         'sub-admin',
-        'brokers',
+        'users',
         'customers',
         'leads',
         'properties',

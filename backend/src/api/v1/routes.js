@@ -8,7 +8,6 @@ import staticPagesRoutes  from '../../modules/static-page/v1/static-pages.routes
 import adminPagesRoutes   from '../../modules/static-page/v1/admin-pages.routes.js';
 
 // Existing module route handlers (add yours here as they are built)
-import brokerRoutes       from '../../modules/broker/v1/broker.routes.js';
 import propertyRoutes     from '../../modules/property/v1/property.routes.js';
 import userRoutes       from '../../modules/user/v1/user.routes.js';
  
@@ -43,7 +42,6 @@ router.use('/admin/pages', adminPagesRoutes);
 // Uncomment and wire up each module as its router is created.
 // The checkPermission middleware handles both admin (pass-through) and sub-admin (DB check).
 
-router.use('/admin/brokers',  brokerRoutes);
 router.use('/admin/properties',  propertyRoutes);
 router.use('/admin/users',  userRoutes);
 

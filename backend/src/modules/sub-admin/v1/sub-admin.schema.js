@@ -17,7 +17,7 @@ import {
 } from '../../../constants/admin.constants.js';
 
 const VALID_MODULES = [
-  'dashboard', 'sub-admin', 'brokers', 'customers',
+  'dashboard', 'sub-admin', 'users',
   'leads', 'properties', 'revenue', 'analytics',
   'plans', 'notifications', 'settings',
 ];
