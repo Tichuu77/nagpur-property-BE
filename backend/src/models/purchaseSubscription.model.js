@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 const subscriptionSchema = new mongoose.Schema({
-  brokerId: { 
+  userId: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'User', 
     required: true,
@@ -38,10 +38,7 @@ const subscriptionSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-// Middleware to auto-expire subscription if date passed
-subscriptionSchema.pre('find', function() {
-  this.where({ endDate: { $gte: new Date() } });
-});
+ 
 
 const Subscription = mongoose.model('Subscription', subscriptionSchema);
 export default Subscription;

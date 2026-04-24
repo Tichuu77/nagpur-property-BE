@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 const leadSchema = new mongoose.Schema({
-  customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   propertyId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Property',
