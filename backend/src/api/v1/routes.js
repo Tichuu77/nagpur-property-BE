@@ -10,6 +10,7 @@ import adminPagesRoutes   from '../../modules/static-page/v1/admin-pages.routes.
 // Existing module route handlers (add yours here as they are built)
 import propertyRoutes     from '../../modules/property/v1/property.routes.js';
 import userRoutes       from '../../modules/user/v1/user.routes.js';
+import planRoutes from '../../modules/subscription/v1/plan.routes.js';
  
 // import customerRoutes     from '../../modules/customer/v1/customer.routes.js';
 // import leadRoutes         from '../../modules/lead/v1/lead.routes.js';
@@ -44,5 +45,6 @@ router.use('/admin/pages', adminPagesRoutes);
 
 router.use('/admin/properties',  propertyRoutes);
 router.use('/admin/users',  userRoutes);
+router.use('/admin/plans',  planRoutes);
 
 export default router;

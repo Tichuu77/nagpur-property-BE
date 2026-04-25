@@ -11,8 +11,6 @@ const planSchema = new mongoose.Schema({
     default: 'days' 
   },
   isDurationUnlimited: { type: Boolean, default: false }, // If true, duration is not limited by days
-  isFreeTrial: { type: Boolean, default: false }, // If true, this plan is a free trial
-   // For free plans, we can set price to 0 and isFree to true. For paid plans, price > 0 and isFree false.
   
   // Feature Limits
   limits: {
@@ -21,6 +19,7 @@ const planSchema = new mongoose.Schema({
     featuredProperties: { type: Number, default: 0 }, // Properties shown at the top
     isFeaturedPropertiesUnlimited: { type: Boolean, default: false }, // If true, no limit on featured properties
     leadAccessCount: { type: Number, default: 10 }, // How many leads they can "unlock"
+    isLeadAccessUnlimited: { type: Boolean, default: false },
     
     prioritySupport: { type: Boolean, default: false },// If true, they get priority support
     analyticsAccess: { type: Boolean, default: false } // If true, they can access detailed analytics
