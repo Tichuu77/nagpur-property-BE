@@ -12,6 +12,8 @@ import propertyRoutes     from '../../modules/property/v1/property.routes.js';
 import userRoutes       from '../../modules/user/v1/user.routes.js';
 import planRoutes from '../../modules/subscription/v1/plan.routes.js';
 import leadRoutes from '../../modules/lead/v1/lead.routes.js';
+import analyticsRoutes from '../../modules/analytics/v1/analytics.routes.js';
+import revenueRoutes from '../../modules/revenue/v1/revenue.routes.js';
  
 // import customerRoutes     from '../../modules/customer/v1/customer.routes.js';
 // import leadRoutes         from '../../modules/lead/v1/lead.routes.js';
@@ -48,4 +50,6 @@ router.use('/admin/properties',  propertyRoutes);
 router.use('/admin/users',  userRoutes);
 router.use('/admin/plans',  planRoutes);
 router.use('/admin/leads',  leadRoutes);
+router.use('/admin/analytics', analyticsRoutes);
+router.use('/admin/revenue', revenueRoutes);
 export default router;
