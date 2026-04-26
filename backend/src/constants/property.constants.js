@@ -2,75 +2,67 @@ const LISTING_CATEGORIES = ['Resale', 'Rental', 'New'];
 const LISTING_TYPES_MESSAGE = `Listing type must be one of: ${LISTING_CATEGORIES.join(', ')}`;
 
 const PROPERTY_TYPES = [
-    'Flat/Apartment',
-    'Villa/Independent House',
-    'Builder Floor',
-    'Penthouse',
-    'Office Space',
-    'Shop',
-    'Showroom',
-    'Warehouse/Godown',
-    'Residential Plot',
-    'Agricultural Land',
-    'NA Plot',
+  'Flat/Apartment',
+  'Villa/Independent House',
+  'Builder Floor',
+  'Penthouse',
+  'Office Space',
+  'Shop',
+  'Showroom',
+  'Warehouse/Godown',
+  'Residential Plot',
+  'Agricultural Land',
+  'NA Plot',
 ];
-
 const PROPERTY_TYPES_MESSAGE = `Property type must be one of: ${PROPERTY_TYPES.join(', ')}`;
 
-const PROPERTY_STATUSES = [
-    'Draft',
-    'Pending',
-    'Active',
-    'Rejected',
-    'Sold',
-    'Rented',
-    'Inactive',
-];
-
+// FIX #2: Added 'Pending' so the model default is a valid enum value
+const PROPERTY_STATUSES = ['Pending', 'Active', 'Rejected', 'Sold', 'Inactive'];
 const PROPERTY_STATUSES_MESSAGE = `Property status must be one of: ${PROPERTY_STATUSES.join(', ')}`;
 
 const FURNISHING_OPTIONS = [
-    'Unfurnished',
-    'Semi-Furnished',
-    'Fully Furnished',
-    'Bare Shell',
-    'Warm Shell',
+  'Unfurnished',
+  'Semi-Furnished',
+  'Fully Furnished',
+  'Bare Shell',
+  'Warm Shell',
 ];
-
 const FURNISHING_OPTIONS_MESSAGE = `Furnishing option must be one of: ${FURNISHING_OPTIONS.join(', ')}`;
 
 const NAGPUR_LOCALITIES = [
-    'Dharampeth', 'Sadar', 'Sitabuldi', 'Manish Nagar', 'Trimurti Nagar',
-    'Besa', 'Wardha Road', 'Hingna Road', 'MIHAN', 'Mankapur',
-    'Laxmi Nagar', 'Ramdaspeth', 'Bajaj Nagar', 'Pratap Nagar',
-    'Kamptee Road', 'Wadi', 'Narendra Nagar', 'Nandanvan',
-    'Koradi Road', 'Somalwada', 'Khamla', 'Ambazari',
-    'Seminary Hills', 'Civil Lines', 'Godhni',
+  'Dharampeth', 'Sadar', 'Sitabuldi', 'Manish Nagar', 'Trimurti Nagar',
+  'Besa', 'Wardha Road', 'Hingna Road', 'MIHAN', 'Mankapur',
+  'Laxmi Nagar', 'Ramdaspeth', 'Bajaj Nagar', 'Pratap Nagar',
+  'Kamptee Road', 'Wadi', 'Narendra Nagar', 'Nandanvan',
+  'Koradi Road', 'Somalwada', 'Khamla', 'Ambazari',
+  'Seminary Hills', 'Civil Lines', 'Godhni', 'Dighori',
 ];
-
 const NAGPUR_LOCALITIES_MESSAGE = `Area must be one of: ${NAGPUR_LOCALITIES.join(', ')}`;
 
 const AMENITIES_LIST = [
-    'Parking (2-wheeler)',
-    'Parking (4-wheeler)',
-    'Lift/Elevator',
-    '24x7 Security',
-    'CCTV Surveillance',
-    'Gym/Fitness Centre',
-    'Swimming Pool',
-    'Garden/Park',
-    "Children's Play Area",
-    'Clubhouse',
-    'Power Backup',
-    'Rainwater Harvesting',
-    'Fire Safety',
-    'Intercom',
-    'Visitor Parking',
-    'Water Storage',
-    'Piped Gas',
-    'Sewage Treatment',
+  'Parking (2-wheeler)',
+  'Parking (4-wheeler)',
+  'Lift/Elevator',
+  '24x7 Security',
+  'CCTV Surveillance',
+  'Gym/Fitness Centre',
+  'Swimming Pool',
+  'Garden/Park',
+  "Children's Play Area",
+  'Clubhouse',
+  'Power Backup',
+  'Rainwater Harvesting',
+  'Fire Safety',
+  'Intercom',
+  'Visitor Parking',
+  'Water Storage',
+  'Piped Gas',
+  'Sewage Treatment',
+  'Gas Connection',
+  'Water Connection',
+  'Electricity Connection',
+  'Water Supply',
 ];
-
 const AMENITIES_LIST_MESSAGE = `Amenities must be an array of the following: ${AMENITIES_LIST.join(', ')}`;
 
 const PINCODE_REGEX = /^44\d{4}$/;
@@ -82,11 +74,11 @@ const SUB_LOCALITY_LENGTH_LIMIT_MESSAGE = `Sub-locality must be at most ${SUB_LO
 const LANDMARK_LENGTH_LIMIT = 100;
 const LANDMARK_LENGTH_LIMIT_MESSAGE = `Landmark must be at most ${LANDMARK_LENGTH_LIMIT} characters long`;
 
+// FIX #1: BHK is a number — corrected misleading messages
 const BHK_MIN_LENGTH_LIMIT = 0;
-const BHK_MIN_LENGTH_LIMIT_MESSAGE = `BHK must be a string of at most ${BHK_MIN_LENGTH_LIMIT} characters (e.g., '2 BHK', '3 RK')`;
-
+const BHK_MIN_LENGTH_LIMIT_MESSAGE = `BHK must be a number between ${BHK_MIN_LENGTH_LIMIT} and 8`;
 const BHK_MAX_LENGTH_LIMIT = 8;
-const BHK_MAX_LENGTH_LIMIT_MESSAGE = `BHK must be a string of at most ${BHK_MAX_LENGTH_LIMIT} characters (e.g., '2 BHK', '3 RK')`;
+const BHK_MAX_LENGTH_LIMIT_MESSAGE = `BHK must be a number between 0 and ${BHK_MAX_LENGTH_LIMIT}`;
 
 const BATHROOMS_MIN_LENGTH_LIMIT = 0;
 const BATHROOMS_MAX_LENGTH_LIMIT = 15;
@@ -117,17 +109,11 @@ const BUILT_UP_AREA_MIN_LENGTH_limit_MESSAGE = `Built-up area must be a number g
 const SUPER_BUILT_UP_AREA_MIN_LENGTH_limit = 1;
 const SUPER_BUILT_UP_AREA_MIN_LENGTH_limit_MESSAGE = `Super built-up area must be a number greater than or equal to ${SUPER_BUILT_UP_AREA_MIN_LENGTH_limit}`;
 
-const FURNISHING_DETAILS_MAX_CHARACTERS = 500;
-const FURNISHING_DETAILS_MAX_CHARACTERS_MESSAGE = `Furnishing details must be at most ${FURNISHING_DETAILS_MAX_CHARACTERS} characters long`;
-
 const FACING_OPTIONS = ['N', 'S', 'E', 'W', 'NE', 'NW', 'SE', 'SW'];
 const FACING_OPTIONS_MESSAGE = `Facing must be one of: ${FACING_OPTIONS.join(', ')}`;
 
 const AGE_OF_PROPERTY = ['New', '1-3 yrs', '3-5 yrs', '5-10 yrs', '10+ yrs'];
 const AGE_OF_PROPERTY_MESSAGE = `Age of property must be one of: ${AGE_OF_PROPERTY.join(', ')}`;
-
-const PROPERTY_AGE_YEARS = 0;
-const PROPERTY_AGE_YEARS_MESSAGE = `Property age in years must be a number greater than or equal to ${PROPERTY_AGE_YEARS}`;
 
 const FLOOR_TYPE = ['Marble', 'Vitrified', 'Wooden', 'Granite', 'Ceramic'];
 const FLOOR_TYPE_MESSAGE = `Floor type must be one of: ${FLOOR_TYPE.join(', ')}`;
@@ -135,19 +121,20 @@ const FLOOR_TYPE_MESSAGE = `Floor type must be one of: ${FLOOR_TYPE.join(', ')}`
 const WATER_SUPPLY = ['Municipal', 'Borewell', 'Both'];
 const WATER_SUPPLY_MESSAGE = `Water supply must be one of: ${WATER_SUPPLY.join(', ')}`;
 
-// ─── New constants ────────────────────────────────────────────────────────────
-
 const ELECTRICITY_STATUS = ['Metered', 'Non-metered', 'Pre-paid'];
 const ELECTRICITY_STATUS_MESSAGE = `Electricity status must be one of: ${ELECTRICITY_STATUS.join(', ')}`;
 
-const OVERLOOKING_OPTIONS = ['Garden', 'Pool', 'Main Road', 'Park'];
-const OVERLOOKING_OPTIONS_MESSAGE = `Overlooking must be one of: ${OVERLOOKING_OPTIONS.join(', ')}`;
-
-const OWNERSHIP_TYPES = ['Freehold', 'Leasehold', 'Co-operative Society', 'Power of Attorney', 'Individual', 'Joint', 'Family'];
+// Full ownership list — individual property type schemas narrow this down as needed
+const OWNERSHIP_TYPES = [
+  'Freehold',
+  'Leasehold',
+  'Co-operative Society',
+  'Power of Attorney',
+  'Individual',
+  'Joint',
+  'Family',
+];
 const OWNERSHIP_TYPES_MESSAGE = `Ownership type must be one of: ${OWNERSHIP_TYPES.join(', ')}`;
-
-const TRANSACTION_TYPES = ['New Property', 'Resale'];
-const TRANSACTION_TYPES_MESSAGE = `Transaction type must be one of: ${TRANSACTION_TYPES.join(', ')}`;
 
 const FLOOR_OWNERSHIP_TYPES = ['Individual', 'Shared', 'Builder-owned'];
 const FLOOR_OWNERSHIP_TYPES_MESSAGE = `Floor ownership type must be one of: ${FLOOR_OWNERSHIP_TYPES.join(', ')}`;
@@ -182,7 +169,14 @@ const APPROVED_BY_OPTIONS_MESSAGE = `Approved by must be one of: ${APPROVED_BY_O
 const ZONE_TYPES = ['Residential', 'Mixed Use', 'Commercial', 'Industrial'];
 const ZONE_TYPES_MESSAGE = `Zone type must be one of: ${ZONE_TYPES.join(', ')}`;
 
-const CONSTRUCTION_STATUS_OPTIONS = ['Pre-launch', 'Under Construction', 'Ready to Move', 'Ready', 'Partially Ready', 'Under Development'];
+const CONSTRUCTION_STATUS_OPTIONS = [
+  'Pre-launch',
+  'Under Construction',
+  'Ready to Move',
+  'Ready',
+  'Partially Ready',
+  'Under Development',
+];
 const CONSTRUCTION_STATUS_OPTIONS_MESSAGE = `Construction status must be one of: ${CONSTRUCTION_STATUS_OPTIONS.join(', ')}`;
 
 const CC_OC_OPTIONS = ['CC Received', 'OC Received', 'Both', 'None', 'Applied'];
@@ -217,9 +211,6 @@ const DESCRIPTION_MIN_LENGTH_MESSAGE = `Description must be at least ${DESCRIPTI
 const DESCRIPTION_MAX_LENGTH = 2000;
 const DESCRIPTION_MAX_LENGTH_MESSAGE = `Description cannot exceed ${DESCRIPTION_MAX_LENGTH} characters`;
 
-const SOCIETY_NAME_MAX_LENGTH = 100;
-const SOCIETY_NAME_MAX_LENGTH_MESSAGE = `Society name must be at most ${SOCIETY_NAME_MAX_LENGTH} characters long`;
-
 const NUMBER_OF_FLOORS_MAX_LENGTH = 20;
 const NUMBER_OF_FLOORS_MAX_LENGTH_MESSAGE = `Number of floors must be at most ${NUMBER_OF_FLOORS_MAX_LENGTH} characters long`;
 
@@ -252,9 +243,6 @@ const BROKERAGE_MAX_LENGTH_MESSAGE = `Brokerage must be at most ${BROKERAGE_MAX_
 
 const PRICE_RANGE_MAX_LENGTH = 50;
 const PRICE_RANGE_MAX_LENGTH_MESSAGE = `Price range must be at most ${PRICE_RANGE_MAX_LENGTH} characters long`;
-
-const ADMIN_NOTES_MAX_LENGTH = 500;
-const ADMIN_NOTES_MAX_LENGTH_MESSAGE = `Admin notes must be at most ${ADMIN_NOTES_MAX_LENGTH} characters long`;
 
 const REJECTED_REASON_MAX_LENGTH = 200;
 const REJECTED_REASON_MAX_LENGTH_MESSAGE = `Rejected reason must be at most ${REJECTED_REASON_MAX_LENGTH} characters long`;
@@ -294,164 +282,150 @@ const NUMBER_OF_DOCKS_MAX = 20;
 const NUMBER_OF_DOCKS_MESSAGE = `Number of docks must be a number between ${NUMBER_OF_DOCKS_MIN} and ${NUMBER_OF_DOCKS_MAX}`;
 
 export {
-    // ─── Existing ─────────────────────────────────────────────────────────────
-    LISTING_CATEGORIES,
-    LISTING_TYPES_MESSAGE,
-    PROPERTY_TYPES,
-    PROPERTY_TYPES_MESSAGE,
-    PROPERTY_STATUSES,
-    PROPERTY_STATUSES_MESSAGE,
-    FURNISHING_OPTIONS,
-    FURNISHING_OPTIONS_MESSAGE,
-    NAGPUR_LOCALITIES,
-    NAGPUR_LOCALITIES_MESSAGE,
-    AMENITIES_LIST,
-    AMENITIES_LIST_MESSAGE,
-    PINCODE_REGEX,
-    PINCODE_REGEX_MESSAGE,
-    SUB_LOCALITY_LENGTH_LIMIT,
-    SUB_LOCALITY_LENGTH_LIMIT_MESSAGE,
-    LANDMARK_LENGTH_LIMIT,
-    LANDMARK_LENGTH_LIMIT_MESSAGE,
-    BHK_MIN_LENGTH_LIMIT,
-    BHK_MIN_LENGTH_LIMIT_MESSAGE,
-    BHK_MAX_LENGTH_LIMIT,
-    BHK_MAX_LENGTH_LIMIT_MESSAGE,
-    BATHROOMS_MIN_LENGTH_LIMIT,
-    BATHROOMS_MIN_LENGTH_LIMIT_MESSAGE,
-    BATHROOMS_MAX_LENGTH_LIMIT,
-    BATHROOMS_MAX_LENGTH_LIMIT_MESSAGE,
-    BALCONIES_MIN_LENGTH_LIMIT,
-    BALCONIES_MIN_LENGTH_LIMIT_MESSAGE,
-    BALCONIES_MAX_LENGTH_LIMIT,
-    BALCONIES_MAX_LENGTH_LIMIT_MESSAGE,
-    FLOOR_NUMBER_MIN_LENGTH_LIMIT,
-    FLOOR_NUMBER_MIN_LENGTH_LIMIT_MESSAGE,
-    FLOOR_NUMBER_MAX_LENGTH_LIMIT,
-    FLOOR_NUMBER_MAX_LENGTH_LIMIT_MESSAGE,
-    TOTAL_FLOORS_MIN_LENGTH_LIMIT,
-    TOTAL_FLOORS_MIN_LENGTH_LIMIT_MESSAGE,
-    TOTAL_FLOORS_MAX_LENGTH_LIMIT,
-    TOTAL_FLOORS_MAX_LENGTH_LIMIT_MESSAGE,
-    CARPET_AREA_MIN_LENGTH_LIMIT,
-    CARPET_AREA_MIN_LENGTH_LIMIT_MESSAGE,
-    BUILT_UP_AREA_MIN_LENGTH_limit,
-    BUILT_UP_AREA_MIN_LENGTH_limit_MESSAGE,
-    SUPER_BUILT_UP_AREA_MIN_LENGTH_limit,
-    SUPER_BUILT_UP_AREA_MIN_LENGTH_limit_MESSAGE,
-    FURNISHING_DETAILS_MAX_CHARACTERS,
-    FURNISHING_DETAILS_MAX_CHARACTERS_MESSAGE,
-    FACING_OPTIONS,
-    FACING_OPTIONS_MESSAGE,
-    AGE_OF_PROPERTY,
-    AGE_OF_PROPERTY_MESSAGE,
-    PROPERTY_AGE_YEARS,
-    PROPERTY_AGE_YEARS_MESSAGE,
-    FLOOR_TYPE,
-    FLOOR_TYPE_MESSAGE,
-    WATER_SUPPLY,
-    WATER_SUPPLY_MESSAGE,
-    // ─── New ──────────────────────────────────────────────────────────────────
-    ELECTRICITY_STATUS,
-    ELECTRICITY_STATUS_MESSAGE,
-    OVERLOOKING_OPTIONS,
-    OVERLOOKING_OPTIONS_MESSAGE,
-    OWNERSHIP_TYPES,
-    OWNERSHIP_TYPES_MESSAGE,
-    TRANSACTION_TYPES,
-    TRANSACTION_TYPES_MESSAGE,
-    FLOOR_OWNERSHIP_TYPES,
-    FLOOR_OWNERSHIP_TYPES_MESSAGE,
-    SHOP_FLOOR_OPTIONS,
-    SHOP_FLOOR_OPTIONS_MESSAGE,
-    FOOTFALL_RATING_OPTIONS,
-    FOOTFALL_RATING_OPTIONS_MESSAGE,
-    SUITABLE_FOR_OPTIONS,
-    SUITABLE_FOR_OPTIONS_MESSAGE,
-    ROAD_TYPES,
-    ROAD_TYPES_MESSAGE,
-    IRRIGATION_TYPES,
-    IRRIGATION_TYPES_MESSAGE,
-    SOIL_TYPES,
-    SOIL_TYPES_MESSAGE,
-    NA_ORDER_STATUS_OPTIONS,
-    NA_ORDER_STATUS_OPTIONS_MESSAGE,
-    WATER_SOURCE_OPTIONS,
-    WATER_SOURCE_OPTIONS_MESSAGE,
-    APPROVED_BY_OPTIONS,
-    APPROVED_BY_OPTIONS_MESSAGE,
-    ZONE_TYPES,
-    ZONE_TYPES_MESSAGE,
-    CONSTRUCTION_STATUS_OPTIONS,
-    CONSTRUCTION_STATUS_OPTIONS_MESSAGE,
-    CC_OC_OPTIONS,
-    CC_OC_OPTIONS_MESSAGE,
-    DEVELOPMENT_STATUS_OPTIONS,
-    DEVELOPMENT_STATUS_OPTIONS_MESSAGE,
-    POSSESSION_TIMELINE_OPTIONS,
-    POSSESSION_TIMELINE_OPTIONS_MESSAGE,
-    PREFERRED_TENANTS_OPTIONS,
-    PREFERRED_TENANTS_OPTIONS_MESSAGE,
-    LEASE_DURATION_OPTIONS,
-    LEASE_DURATION_OPTIONS_MESSAGE,
-    LOCK_IN_PERIOD_OPTIONS,
-    LOCK_IN_PERIOD_OPTIONS_MESSAGE,
-    RERA_NUMBER_REGEX,
-    RERA_NUMBER_REGEX_MESSAGE,
-    TITLE_MAX_LENGTH,
-    TITLE_MAX_LENGTH_MESSAGE,
-    DESCRIPTION_MIN_LENGTH,
-    DESCRIPTION_MIN_LENGTH_MESSAGE,
-    DESCRIPTION_MAX_LENGTH,
-    DESCRIPTION_MAX_LENGTH_MESSAGE,
-    SOCIETY_NAME_MAX_LENGTH,
-    SOCIETY_NAME_MAX_LENGTH_MESSAGE,
-    NUMBER_OF_FLOORS_MAX_LENGTH,
-    NUMBER_OF_FLOORS_MAX_LENGTH_MESSAGE,
-    FLOOR_LOAD_CAPACITY_MAX_LENGTH,
-    FLOOR_LOAD_CAPACITY_MAX_LENGTH_MESSAGE,
-    TREES_PLANTATION_MAX_LENGTH,
-    TREES_PLANTATION_MAX_LENGTH_MESSAGE,
-    NA_ORDER_NUMBER_MAX_LENGTH,
-    NA_ORDER_NUMBER_MAX_LENGTH_MESSAGE,
-    PROJECT_NAME_MAX_LENGTH,
-    PROJECT_NAME_MAX_LENGTH_MESSAGE,
-    BUILDER_NAME_MAX_LENGTH,
-    BUILDER_NAME_MAX_LENGTH_MESSAGE,
-    TOWER_WING_MAX_LENGTH,
-    TOWER_WING_MAX_LENGTH_MESSAGE,
-    APPROVED_BANKS_MAX_LENGTH,
-    APPROVED_BANKS_MAX_LENGTH_MESSAGE,
-    LAYOUT_PROJECT_NAME_MAX_LENGTH,
-    LAYOUT_PROJECT_NAME_MAX_LENGTH_MESSAGE,
-    BROKERAGE_MAX_LENGTH,
-    BROKERAGE_MAX_LENGTH_MESSAGE,
-    PRICE_RANGE_MAX_LENGTH,
-    PRICE_RANGE_MAX_LENGTH_MESSAGE,
-    ADMIN_NOTES_MAX_LENGTH,
-    ADMIN_NOTES_MAX_LENGTH_MESSAGE,
-    REJECTED_REASON_MAX_LENGTH,
-    REJECTED_REASON_MAX_LENGTH_MESSAGE,
-    PHOTOS_MIN_COUNT,
-    PHOTOS_MIN_COUNT_MESSAGE,
-    PHOTOS_MAX_COUNT,
-    PHOTOS_MAX_COUNT_MESSAGE,
-    CABIN_COUNT_MIN,
-    CABIN_COUNT_MAX,
-    CABIN_COUNT_MESSAGE,
-    OPEN_DESKS_MIN,
-    OPEN_DESKS_MAX,
-    OPEN_DESKS_MESSAGE,
-    WASHROOMS_MIN,
-    WASHROOMS_MAX,
-    WASHROOMS_MESSAGE,
-    PARKING_SLOTS_MIN,
-    PARKING_SLOTS_MAX,
-    PARKING_SLOTS_MESSAGE,
-    NUMBER_OF_SHOWROOM_FLOORS_MIN,
-    NUMBER_OF_SHOWROOM_FLOORS_MAX,
-    NUMBER_OF_SHOWROOM_FLOORS_MESSAGE,
-    NUMBER_OF_DOCKS_MIN,
-    NUMBER_OF_DOCKS_MAX,
-    NUMBER_OF_DOCKS_MESSAGE,
+  LISTING_CATEGORIES,
+  LISTING_TYPES_MESSAGE,
+  PROPERTY_TYPES,
+  PROPERTY_TYPES_MESSAGE,
+  PROPERTY_STATUSES,
+  PROPERTY_STATUSES_MESSAGE,
+  FURNISHING_OPTIONS,
+  FURNISHING_OPTIONS_MESSAGE,
+  NAGPUR_LOCALITIES,
+  NAGPUR_LOCALITIES_MESSAGE,
+  AMENITIES_LIST,
+  AMENITIES_LIST_MESSAGE,
+  PINCODE_REGEX,
+  PINCODE_REGEX_MESSAGE,
+  SUB_LOCALITY_LENGTH_LIMIT,
+  SUB_LOCALITY_LENGTH_LIMIT_MESSAGE,
+  LANDMARK_LENGTH_LIMIT,
+  LANDMARK_LENGTH_LIMIT_MESSAGE,
+  BHK_MIN_LENGTH_LIMIT,
+  BHK_MIN_LENGTH_LIMIT_MESSAGE,
+  BHK_MAX_LENGTH_LIMIT,
+  BHK_MAX_LENGTH_LIMIT_MESSAGE,
+  BATHROOMS_MIN_LENGTH_LIMIT,
+  BATHROOMS_MIN_LENGTH_LIMIT_MESSAGE,
+  BATHROOMS_MAX_LENGTH_LIMIT,
+  BATHROOMS_MAX_LENGTH_LIMIT_MESSAGE,
+  BALCONIES_MIN_LENGTH_LIMIT,
+  BALCONIES_MIN_LENGTH_LIMIT_MESSAGE,
+  BALCONIES_MAX_LENGTH_LIMIT,
+  BALCONIES_MAX_LENGTH_LIMIT_MESSAGE,
+  FLOOR_NUMBER_MIN_LENGTH_LIMIT,
+  FLOOR_NUMBER_MIN_LENGTH_LIMIT_MESSAGE,
+  FLOOR_NUMBER_MAX_LENGTH_LIMIT,
+  FLOOR_NUMBER_MAX_LENGTH_LIMIT_MESSAGE,
+  TOTAL_FLOORS_MIN_LENGTH_LIMIT,
+  TOTAL_FLOORS_MIN_LENGTH_LIMIT_MESSAGE,
+  TOTAL_FLOORS_MAX_LENGTH_LIMIT,
+  TOTAL_FLOORS_MAX_LENGTH_LIMIT_MESSAGE,
+  CARPET_AREA_MIN_LENGTH_LIMIT,
+  CARPET_AREA_MIN_LENGTH_LIMIT_MESSAGE,
+  BUILT_UP_AREA_MIN_LENGTH_limit,
+  BUILT_UP_AREA_MIN_LENGTH_limit_MESSAGE,
+  SUPER_BUILT_UP_AREA_MIN_LENGTH_limit,
+  SUPER_BUILT_UP_AREA_MIN_LENGTH_limit_MESSAGE,
+  FACING_OPTIONS,
+  FACING_OPTIONS_MESSAGE,
+  AGE_OF_PROPERTY,
+  AGE_OF_PROPERTY_MESSAGE,
+  FLOOR_TYPE,
+  FLOOR_TYPE_MESSAGE,
+  WATER_SUPPLY,
+  WATER_SUPPLY_MESSAGE,
+  ELECTRICITY_STATUS,
+  ELECTRICITY_STATUS_MESSAGE,
+  OWNERSHIP_TYPES,
+  OWNERSHIP_TYPES_MESSAGE,
+  FLOOR_OWNERSHIP_TYPES,
+  FLOOR_OWNERSHIP_TYPES_MESSAGE,
+  SHOP_FLOOR_OPTIONS,
+  SHOP_FLOOR_OPTIONS_MESSAGE,
+  FOOTFALL_RATING_OPTIONS,
+  FOOTFALL_RATING_OPTIONS_MESSAGE,
+  SUITABLE_FOR_OPTIONS,
+  SUITABLE_FOR_OPTIONS_MESSAGE,
+  ROAD_TYPES,
+  ROAD_TYPES_MESSAGE,
+  IRRIGATION_TYPES,
+  IRRIGATION_TYPES_MESSAGE,
+  SOIL_TYPES,
+  SOIL_TYPES_MESSAGE,
+  NA_ORDER_STATUS_OPTIONS,
+  NA_ORDER_STATUS_OPTIONS_MESSAGE,
+  WATER_SOURCE_OPTIONS,
+  WATER_SOURCE_OPTIONS_MESSAGE,
+  APPROVED_BY_OPTIONS,
+  APPROVED_BY_OPTIONS_MESSAGE,
+  ZONE_TYPES,
+  ZONE_TYPES_MESSAGE,
+  CONSTRUCTION_STATUS_OPTIONS,
+  CONSTRUCTION_STATUS_OPTIONS_MESSAGE,
+  CC_OC_OPTIONS,
+  CC_OC_OPTIONS_MESSAGE,
+  DEVELOPMENT_STATUS_OPTIONS,
+  DEVELOPMENT_STATUS_OPTIONS_MESSAGE,
+  POSSESSION_TIMELINE_OPTIONS,
+  POSSESSION_TIMELINE_OPTIONS_MESSAGE,
+  PREFERRED_TENANTS_OPTIONS,
+  PREFERRED_TENANTS_OPTIONS_MESSAGE,
+  LEASE_DURATION_OPTIONS,
+  LEASE_DURATION_OPTIONS_MESSAGE,
+  LOCK_IN_PERIOD_OPTIONS,
+  LOCK_IN_PERIOD_OPTIONS_MESSAGE,
+  RERA_NUMBER_REGEX,
+  RERA_NUMBER_REGEX_MESSAGE,
+  TITLE_MAX_LENGTH,
+  TITLE_MAX_LENGTH_MESSAGE,
+  DESCRIPTION_MIN_LENGTH,
+  DESCRIPTION_MIN_LENGTH_MESSAGE,
+  DESCRIPTION_MAX_LENGTH,
+  DESCRIPTION_MAX_LENGTH_MESSAGE,
+  NUMBER_OF_FLOORS_MAX_LENGTH,
+  NUMBER_OF_FLOORS_MAX_LENGTH_MESSAGE,
+  FLOOR_LOAD_CAPACITY_MAX_LENGTH,
+  FLOOR_LOAD_CAPACITY_MAX_LENGTH_MESSAGE,
+  TREES_PLANTATION_MAX_LENGTH,
+  TREES_PLANTATION_MAX_LENGTH_MESSAGE,
+  NA_ORDER_NUMBER_MAX_LENGTH,
+  NA_ORDER_NUMBER_MAX_LENGTH_MESSAGE,
+  PROJECT_NAME_MAX_LENGTH,
+  PROJECT_NAME_MAX_LENGTH_MESSAGE,
+  BUILDER_NAME_MAX_LENGTH,
+  BUILDER_NAME_MAX_LENGTH_MESSAGE,
+  TOWER_WING_MAX_LENGTH,
+  TOWER_WING_MAX_LENGTH_MESSAGE,
+  APPROVED_BANKS_MAX_LENGTH,
+  APPROVED_BANKS_MAX_LENGTH_MESSAGE,
+  LAYOUT_PROJECT_NAME_MAX_LENGTH,
+  LAYOUT_PROJECT_NAME_MAX_LENGTH_MESSAGE,
+  BROKERAGE_MAX_LENGTH,
+  BROKERAGE_MAX_LENGTH_MESSAGE,
+  PRICE_RANGE_MAX_LENGTH,
+  PRICE_RANGE_MAX_LENGTH_MESSAGE,
+  REJECTED_REASON_MAX_LENGTH,
+  REJECTED_REASON_MAX_LENGTH_MESSAGE,
+  PHOTOS_MIN_COUNT,
+  PHOTOS_MIN_COUNT_MESSAGE,
+  PHOTOS_MAX_COUNT,
+  PHOTOS_MAX_COUNT_MESSAGE,
+  CABIN_COUNT_MIN,
+  CABIN_COUNT_MAX,
+  CABIN_COUNT_MESSAGE,
+  OPEN_DESKS_MIN,
+  OPEN_DESKS_MAX,
+  OPEN_DESKS_MESSAGE,
+  WASHROOMS_MIN,
+  WASHROOMS_MAX,
+  WASHROOMS_MESSAGE,
+  PARKING_SLOTS_MIN,
+  PARKING_SLOTS_MAX,
+  PARKING_SLOTS_MESSAGE,
+  NUMBER_OF_SHOWROOM_FLOORS_MIN,
+  NUMBER_OF_SHOWROOM_FLOORS_MAX,
+  NUMBER_OF_SHOWROOM_FLOORS_MESSAGE,
+  NUMBER_OF_DOCKS_MIN,
+  NUMBER_OF_DOCKS_MAX,
+  NUMBER_OF_DOCKS_MESSAGE,
 };

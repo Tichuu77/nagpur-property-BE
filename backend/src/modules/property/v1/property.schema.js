@@ -32,8 +32,6 @@ import {
   TOTAL_FLOORS_MIN_LENGTH_LIMIT,
   TOTAL_FLOORS_MAX_LENGTH_LIMIT,
   TOTAL_FLOORS_MAX_LENGTH_LIMIT_MESSAGE,
-  FURNISHING_DETAILS_MAX_CHARACTERS,
-  FURNISHING_DETAILS_MAX_CHARACTERS_MESSAGE,
   FACING_OPTIONS,
   FACING_OPTIONS_MESSAGE,
   AGE_OF_PROPERTY,
@@ -44,8 +42,6 @@ import {
   WATER_SUPPLY_MESSAGE,
   ELECTRICITY_STATUS,
   ELECTRICITY_STATUS_MESSAGE,
-  OVERLOOKING_OPTIONS,
-  OVERLOOKING_OPTIONS_MESSAGE,
   FLOOR_OWNERSHIP_TYPES,
   FLOOR_OWNERSHIP_TYPES_MESSAGE,
   SHOP_FLOOR_OPTIONS,
@@ -90,8 +86,6 @@ import {
   DESCRIPTION_MIN_LENGTH_MESSAGE,
   DESCRIPTION_MAX_LENGTH,
   DESCRIPTION_MAX_LENGTH_MESSAGE,
-  SOCIETY_NAME_MAX_LENGTH,
-  SOCIETY_NAME_MAX_LENGTH_MESSAGE,
   NUMBER_OF_FLOORS_MAX_LENGTH,
   NUMBER_OF_FLOORS_MAX_LENGTH_MESSAGE,
   FLOOR_LOAD_CAPACITY_MAX_LENGTH,
@@ -114,8 +108,6 @@ import {
   BROKERAGE_MAX_LENGTH_MESSAGE,
   PRICE_RANGE_MAX_LENGTH,
   PRICE_RANGE_MAX_LENGTH_MESSAGE,
-  ADMIN_NOTES_MAX_LENGTH,
-  ADMIN_NOTES_MAX_LENGTH_MESSAGE,
   REJECTED_REASON_MAX_LENGTH,
   REJECTED_REASON_MAX_LENGTH_MESSAGE,
   PARKING_SLOTS_MIN,
@@ -136,7 +128,10 @@ import {
   NUMBER_OF_DOCKS_MIN,
   NUMBER_OF_DOCKS_MAX,
   NUMBER_OF_DOCKS_MESSAGE,
+  OWNERSHIP_TYPES,
+  OWNERSHIP_TYPES_MESSAGE,
 } from '../../../constants/property.constants.js';
+// FIX #9: removed unused `import { de } from 'zod/v4/locales'`
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const positiveNumber = () => z.number({ coerce: true }).positive();
@@ -157,9 +152,9 @@ const locationSchema = z.object({
   }),
 });
 
-// ─── Details schemas per type ─────────────────────────────────────────────────
+// ─── Shared detail schemas ────────────────────────────────────────────────────
 
-/** Shared residential fields (Flat, Builder Floor, Penthouse) */
+/** Core fields shared by Flat, Builder Floor, Penthouse */
 const residentialBase = z.object({
   bhk:               z.number({ coerce: true }).int().min(BHK_MIN_LENGTH_LIMIT).max(BHK_MAX_LENGTH_LIMIT, BHK_MAX_LENGTH_LIMIT_MESSAGE),
   bathrooms:         z.number({ coerce: true }).int().min(BATHROOMS_MIN_LENGTH_LIMIT).max(BATHROOMS_MAX_LENGTH_LIMIT, BATHROOMS_MAX_LENGTH_LIMIT_MESSAGE),
@@ -170,43 +165,38 @@ const residentialBase = z.object({
   builtUpArea:       optionalPosNum(),
   superBuiltUpArea:  optionalPosNum(),
   furnishing:        z.enum(FURNISHING_OPTIONS, { errorMap: () => ({ message: FURNISHING_OPTIONS_MESSAGE }) }),
-  furnishingDetails: optionalString(FURNISHING_DETAILS_MAX_CHARACTERS, FURNISHING_DETAILS_MAX_CHARACTERS_MESSAGE),
   facing:            optionalEnum(FACING_OPTIONS, FACING_OPTIONS_MESSAGE),
   ageOfProperty:     optionalEnum(AGE_OF_PROPERTY, AGE_OF_PROPERTY_MESSAGE),
-  propertyAgeYears:  optionalPosNum(),
   floorType:         optionalEnum(FLOOR_TYPE, FLOOR_TYPE_MESSAGE),
   waterSupply:       optionalEnum(WATER_SUPPLY, WATER_SUPPLY_MESSAGE),
   electricityStatus: optionalEnum(ELECTRICITY_STATUS, ELECTRICITY_STATUS_MESSAGE),
-  overlooking:       z.array(z.enum(OVERLOOKING_OPTIONS, { errorMap: () => ({ message: OVERLOOKING_OPTIONS_MESSAGE }) })).optional(),
-  societyName:       optionalString(SOCIETY_NAME_MAX_LENGTH, SOCIETY_NAME_MAX_LENGTH_MESSAGE),
   reraRegistered:    optionalBool(),
-  reraNumber:        optionalString(20),
+  reraNumber:        z.string().regex(RERA_NUMBER_REGEX, RERA_NUMBER_REGEX_MESSAGE).nullable().optional(),
 });
 
 const villaBase = z.object({
-  bhk:               z.number({ coerce: true }).int().min(BHK_MIN_LENGTH_LIMIT).max(BHK_MAX_LENGTH_LIMIT, BHK_MAX_LENGTH_LIMIT_MESSAGE),
-  bathrooms:         z.number({ coerce: true }).int().min(BATHROOMS_MIN_LENGTH_LIMIT).max(BATHROOMS_MAX_LENGTH_LIMIT, BATHROOMS_MAX_LENGTH_LIMIT_MESSAGE),
-  numberOfFloors:    z.string().max(NUMBER_OF_FLOORS_MAX_LENGTH, NUMBER_OF_FLOORS_MAX_LENGTH_MESSAGE),
-  plotArea:          positiveNumber(),
-  builtUpArea:       positiveNumber(),
-  carpetArea:        optionalPosNum(),
-  furnishing:        z.enum(FURNISHING_OPTIONS, { errorMap: () => ({ message: FURNISHING_OPTIONS_MESSAGE }) }),
-  furnishingDetails: optionalString(FURNISHING_DETAILS_MAX_CHARACTERS, FURNISHING_DETAILS_MAX_CHARACTERS_MESSAGE),
-  facing:            optionalEnum(FACING_OPTIONS, FACING_OPTIONS_MESSAGE),
-  parkingSlots:      z.number({ coerce: true }).int().min(PARKING_SLOTS_MIN).max(PARKING_SLOTS_MAX, PARKING_SLOTS_MESSAGE),
-  hasGarden:         optionalBool(),
-  cornerProperty:    optionalBool(),
-  gatedSociety:      optionalBool(),
-  independentEntry:  optionalBool(),
-  roadWidth:         optionalPosNum(),
-  waterSupply:       optionalEnum(WATER_SUPPLY, WATER_SUPPLY_MESSAGE),
-  floorType:         optionalEnum(FLOOR_TYPE, FLOOR_TYPE_MESSAGE),
-  propertyAgeYears:  optionalPosNum(),
-  reraRegistered:    optionalBool(),
-  reraNumber:        optionalString(20),
-  societyName:       optionalString(SOCIETY_NAME_MAX_LENGTH, SOCIETY_NAME_MAX_LENGTH_MESSAGE),
-  petFriendly:       optionalBool(),
-  nonVegAllowed:     optionalBool(),
+  bhk:              z.number({ coerce: true }).int().min(BHK_MIN_LENGTH_LIMIT).max(BHK_MAX_LENGTH_LIMIT, BHK_MAX_LENGTH_LIMIT_MESSAGE),
+  bathrooms:        z.number({ coerce: true }).int().min(BATHROOMS_MIN_LENGTH_LIMIT).max(BATHROOMS_MAX_LENGTH_LIMIT, BATHROOMS_MAX_LENGTH_LIMIT_MESSAGE),
+  numberOfFloors:   z.string().max(NUMBER_OF_FLOORS_MAX_LENGTH, NUMBER_OF_FLOORS_MAX_LENGTH_MESSAGE),
+  plotArea:         positiveNumber(),
+  builtUpArea:      positiveNumber(),
+  carpetArea:       optionalPosNum(),
+  furnishing:       z.enum(FURNISHING_OPTIONS, { errorMap: () => ({ message: FURNISHING_OPTIONS_MESSAGE }) }),
+  facing:           optionalEnum(FACING_OPTIONS, FACING_OPTIONS_MESSAGE),
+  parkingSlots:     z.number({ coerce: true }).int().min(PARKING_SLOTS_MIN).max(PARKING_SLOTS_MAX, PARKING_SLOTS_MESSAGE),
+  hasGarden:        optionalBool(),
+  cornerProperty:   optionalBool(),
+  gatedSociety:     optionalBool(),
+  independentEntry: optionalBool(),
+  roadWidth:        optionalPosNum(),
+  waterSupply:      optionalEnum(WATER_SUPPLY, WATER_SUPPLY_MESSAGE),
+  floorType:        optionalEnum(FLOOR_TYPE, FLOOR_TYPE_MESSAGE),
+  ageOfProperty:    optionalEnum(AGE_OF_PROPERTY, AGE_OF_PROPERTY_MESSAGE),
+  reraRegistered:   optionalBool(),
+  reraNumber:       z.string().regex(RERA_NUMBER_REGEX, RERA_NUMBER_REGEX_MESSAGE).nullable().optional(),
+  // pet / diet prefs shown for all villa categories (doc §5, §16, §27)
+  petFriendly:      optionalBool(),
+  nonVegAllowed:    optionalBool(),
 });
 
 const penthouseExtra = z.object({
@@ -229,7 +219,7 @@ const commercialOfficeBase = z.object({
   superBuiltUpArea: optionalPosNum(),
   floorNumber:      z.number({ coerce: true }).int().min(FLOOR_NUMBER_MIN_LENGTH_LIMIT).max(FLOOR_NUMBER_MAX_LENGTH_LIMIT, FLOOR_NUMBER_MAX_LENGTH_LIMIT_MESSAGE),
   totalFloors:      optionalPosNum(),
-  furnishing:       z.enum(['Bare Shell', 'Warm Shell', 'Semi-Furnished', 'Fully Furnished'], { errorMap: () => ({ message: FURNISHING_OPTIONS_MESSAGE }) }),
+  furnishing:       z.enum(FURNISHING_OPTIONS, { errorMap: () => ({ message: FURNISHING_OPTIONS_MESSAGE }) }),
   washrooms:        z.number({ coerce: true }).int().min(WASHROOMS_MIN).max(WASHROOMS_MAX, WASHROOMS_MESSAGE),
   cabinCount:       z.number({ coerce: true }).int().min(CABIN_COUNT_MIN).max(CABIN_COUNT_MAX, CABIN_COUNT_MESSAGE).nullable().optional(),
   openDesks:        z.number({ coerce: true }).int().min(OPEN_DESKS_MIN).max(OPEN_DESKS_MAX, OPEN_DESKS_MESSAGE).nullable().optional(),
@@ -240,25 +230,23 @@ const commercialOfficeBase = z.object({
   centralAC:        optionalBool(),
   officeFireSafety: optionalBool(),
   dgBackup:         optionalBool(),
-  propertyAgeYears: optionalPosNum(),
-  ownershipType:    optionalEnum(['Freehold', 'Leasehold'], 'Ownership type must be Freehold or Leasehold'),
+  ageOfProperty:    optionalEnum(AGE_OF_PROPERTY, AGE_OF_PROPERTY_MESSAGE),
 });
 
 const shopBase = z.object({
-  carpetArea:       positiveNumber(),
-  builtUpArea:      optionalPosNum(),
-  shopFloor:        z.enum(SHOP_FLOOR_OPTIONS, { errorMap: () => ({ message: SHOP_FLOOR_OPTIONS_MESSAGE }) }),
-  frontage:         optionalPosNum(),
-  depth:            optionalPosNum(),
-  ceilingHeight:    optionalPosNum(),
-  mainRoadFacing:   optionalBool(),
-  cornerShop:       optionalBool(),
-  mezzanineFloor:   optionalBool(),
-  hasWashroom:      optionalBool(),
-  footfallRating:   optionalEnum(FOOTFALL_RATING_OPTIONS, FOOTFALL_RATING_OPTIONS_MESSAGE),
-  suitableFor:      z.array(z.enum(SUITABLE_FOR_OPTIONS, { errorMap: () => ({ message: SUITABLE_FOR_OPTIONS_MESSAGE }) })).optional(),
-  propertyAgeYears: optionalPosNum(),
-  ownershipType:    optionalEnum(['Freehold', 'Leasehold'], 'Ownership type must be Freehold or Leasehold'),
+  carpetArea:     positiveNumber(),
+  builtUpArea:    optionalPosNum(),
+  shopFloor:      z.enum(SHOP_FLOOR_OPTIONS, { errorMap: () => ({ message: SHOP_FLOOR_OPTIONS_MESSAGE }) }),
+  frontage:       optionalPosNum(),
+  depth:          optionalPosNum(),
+  ceilingHeight:  optionalPosNum(),
+  mainRoadFacing: optionalBool(),
+  cornerShop:     optionalBool(),
+  mezzanineFloor: optionalBool(),
+  hasWashroom:    optionalBool(),
+  footfallRating: optionalEnum(FOOTFALL_RATING_OPTIONS, FOOTFALL_RATING_OPTIONS_MESSAGE),
+  suitableFor:    z.array(z.enum(SUITABLE_FOR_OPTIONS, { errorMap: () => ({ message: SUITABLE_FOR_OPTIONS_MESSAGE }) })).optional(),
+  ageOfProperty:  optionalEnum(AGE_OF_PROPERTY, AGE_OF_PROPERTY_MESSAGE),
 });
 
 const showroomBase = z.object({
@@ -270,8 +258,7 @@ const showroomBase = z.object({
   parkingAvailable:       z.boolean(),
   acInstalled:            optionalBool(),
   mainRoadFacing:         optionalBool(),
-  propertyAgeYears:       optionalPosNum(),
-  ownershipType:          optionalEnum(['Freehold', 'Leasehold'], 'Ownership type must be Freehold or Leasehold'),
+  ageOfProperty:          optionalEnum(AGE_OF_PROPERTY, AGE_OF_PROPERTY_MESSAGE),
 });
 
 const warehouseBase = z.object({
@@ -285,12 +272,13 @@ const warehouseBase = z.object({
   waterSupplyWarehouse: optionalBool(),
   officeSpaceInside:    optionalBool(),
   midc:                 optionalBool(),
-  propertyAgeYears:     optionalPosNum(),
-  ownershipType:        optionalEnum(['Freehold', 'Leasehold'], 'Ownership type must be Freehold or Leasehold'),
+  ageOfProperty:        optionalEnum(AGE_OF_PROPERTY, AGE_OF_PROPERTY_MESSAGE),
 });
 
 const residentialPlotBase = z.object({
   plotAreaSqFt:  positiveNumber(),
+  // FIX #8: accept auto-calculated field from frontend
+  plotAreaSqM:   optionalPosNum(),
   plotLength:    optionalPosNum(),
   plotWidth:     optionalPosNum(),
   facing:        optionalEnum(FACING_OPTIONS, FACING_OPTIONS_MESSAGE),
@@ -301,11 +289,12 @@ const residentialPlotBase = z.object({
   approvedBy:    z.array(z.enum(APPROVED_BY_OPTIONS, { errorMap: () => ({ message: APPROVED_BY_OPTIONS_MESSAGE }) })).optional(),
   zoneType:      optionalEnum(['Residential', 'Mixed Use'], ZONE_TYPES_MESSAGE),
   fsiAvailable:  optionalPosNum(),
-  ownershipType: optionalEnum(['Freehold', 'Leasehold'], 'Ownership type must be Freehold or Leasehold'),
 });
 
 const agriLandBase = z.object({
-  areaAcres:          positiveNumber(),
+  areaAcres:    positiveNumber(),
+  // FIX #8: accept auto-calculated field from frontend
+  areaHectares: optionalPosNum(),
   waterSource:        z.array(z.enum(WATER_SOURCE_OPTIONS, { errorMap: () => ({ message: WATER_SOURCE_OPTIONS_MESSAGE }) })).optional(),
   roadAccess:         z.boolean(),
   roadType:           optionalEnum(ROAD_TYPES, ROAD_TYPES_MESSAGE),
@@ -316,16 +305,22 @@ const agriLandBase = z.object({
   distanceFromCity:   optionalPosNum(),
   sevenTwelveExtract: optionalBool(),
   soilType:           optionalEnum(SOIL_TYPES, SOIL_TYPES_MESSAGE),
-  ownershipType:      z.enum(['Individual', 'Joint', 'Family'], { errorMap: () => ({ message: 'Ownership type must be Individual, Joint, or Family' }) }),
+  // FIX #16: doc §13 restricts agri land ownership to Individual / Joint / Family only
+  ownershipType: z.enum(['Individual', 'Joint', 'Family'], {
+    errorMap: () => ({ message: 'Ownership type for Agricultural Land must be Individual, Joint, or Family' }),
+  }),
 });
 
 const naPlotBase = z.object({
   naOrderStatus:      z.enum(NA_ORDER_STATUS_OPTIONS, { errorMap: () => ({ message: NA_ORDER_STATUS_OPTIONS_MESSAGE }) }),
   naOrderNumber:      optionalString(NA_ORDER_NUMBER_MAX_LENGTH, NA_ORDER_NUMBER_MAX_LENGTH_MESSAGE),
   plotAreaSqFt:       positiveNumber(),
+  // FIX #8: accept auto-calculated field from frontend
+  plotAreaSqM:        optionalPosNum(),
   plotLength:         optionalPosNum(),
   plotWidth:          optionalPosNum(),
   facing:             optionalEnum(FACING_OPTIONS, FACING_OPTIONS_MESSAGE),
+  // doc §14/25 adds 'Collector' to approvedBy for NA plots
   approvedBy:         z.array(z.enum([...APPROVED_BY_OPTIONS, 'Collector'], { errorMap: () => ({ message: APPROVED_BY_OPTIONS_MESSAGE }) })).optional(),
   zoneType:           optionalEnum(ZONE_TYPES, ZONE_TYPES_MESSAGE),
   roadWidth:          optionalPosNum(),
@@ -339,7 +334,7 @@ const naPlotBase = z.object({
   { message: 'NA Order Number is required when status is "NA Order Received"', path: ['naOrderNumber'] }
 );
 
-// ─── Pricing schemas per category ─────────────────────────────────────────────
+// ─── Pricing schemas ──────────────────────────────────────────────────────────
 const resalePricing = z.object({
   totalPrice:         positiveNumber(),
   pricePerSqft:       optionalPosNum(),
@@ -373,8 +368,8 @@ const newPricing = z.object({
 
 // ─── New Project details ──────────────────────────────────────────────────────
 const newProjectDetails = z.object({
-  projectName:         z.string().max(PROJECT_NAME_MAX_LENGTH, PROJECT_NAME_MAX_LENGTH_MESSAGE),
-  builderName:         z.string().max(BUILDER_NAME_MAX_LENGTH, BUILDER_NAME_MAX_LENGTH_MESSAGE),
+  projectName:         z.string().min(1).max(PROJECT_NAME_MAX_LENGTH, PROJECT_NAME_MAX_LENGTH_MESSAGE),
+  builderName:         z.string().min(1).max(BUILDER_NAME_MAX_LENGTH, BUILDER_NAME_MAX_LENGTH_MESSAGE),
   reraNumber:          z.string().regex(RERA_NUMBER_REGEX, RERA_NUMBER_REGEX_MESSAGE),
   reraValidityDate:    z.coerce.date().nullable().optional(),
   constructionStatus:  z.enum(CONSTRUCTION_STATUS_OPTIONS, { errorMap: () => ({ message: CONSTRUCTION_STATUS_OPTIONS_MESSAGE }) }),
@@ -386,6 +381,16 @@ const newProjectDetails = z.object({
   ccOcReceived:        optionalEnum(CC_OC_OPTIONS, CC_OC_OPTIONS_MESSAGE),
 });
 
+// ─── Resale ownership mixin ───────────────────────────────────────────────────
+/** Standard ownership + readyToMove fields for Resale residential types */
+const resaleResidentialExtra = z.object({
+  ownershipType: z.enum(
+    ['Freehold', 'Leasehold', 'Co-operative Society', 'Power of Attorney'],
+    { errorMap: () => ({ message: 'Ownership type must be Freehold, Leasehold, Co-operative Society, or Power of Attorney' }) }
+  ),
+  readyToMove: z.boolean(),
+});
+
 // ─── Base property schema ─────────────────────────────────────────────────────
 export const basePropertySchema = z.object({
   title:           z.string().min(1).max(TITLE_MAX_LENGTH, TITLE_MAX_LENGTH_MESSAGE),
@@ -395,7 +400,6 @@ export const basePropertySchema = z.object({
   brokerId:        z.string().min(1, 'Broker (User) ID is required'),
   location:        locationSchema,
   amenities:       z.array(z.enum(AMENITIES_LIST, { errorMap: () => ({ message: AMENITIES_LIST_MESSAGE }) })).optional().default([]),
-  adminNotes:      optionalString(ADMIN_NOTES_MAX_LENGTH, ADMIN_NOTES_MAX_LENGTH_MESSAGE),
 });
 
 /**
@@ -408,79 +412,174 @@ export const basePropertySchema = z.object({
 export function validatePropertyPayload(payload) {
   const base = basePropertySchema.safeParse(payload);
   if (!base.success) {
-    return {
-      error: base.error.issues.map((i) => i.message).join('; '),
-    };
+    return { error: base.error.issues.map((i) => i.message).join('; ') };
   }
 
   const { listingCategory, propertyType } = base.data;
   const details = payload.details || {};
-  const pricing = payload.pricing || {};
+  const pricing  = payload.pricing  || {};
 
   // ── Validate Details ──────────────────────────────────────────────────────
   let detailsResult;
+
   switch (propertyType) {
-    case 'Flat/Apartment':
-    case 'Builder Floor':
-    case 'Penthouse': {
-      let schema = residentialBase;
-      if (propertyType === 'Penthouse')     schema = schema.merge(penthouseExtra);
-      if (propertyType === 'Builder Floor') schema = schema.merge(builderFloorExtra);
-      if (listingCategory !== 'Resale') {
-        schema = schema.merge(z.object({ petFriendly: optionalBool(), nonVegAllowed: optionalBool() }));
+
+    // ── Flat / Apartment ────────────────────────────────────────────────────
+    case 'Flat/Apartment': {
+      if (listingCategory === 'New') {
+        detailsResult = residentialBase.merge(newProjectDetails).safeParse(details);
+      } else if (listingCategory === 'Resale') {
+        detailsResult = residentialBase.merge(resaleResidentialExtra).safeParse(details);
+      } else {
+        // Rental — FIX #14: add petFriendly / nonVegAllowed (doc §15)
+        detailsResult = residentialBase.merge(z.object({
+          petFriendly:   optionalBool(),
+          nonVegAllowed: optionalBool(),
+        })).safeParse(details);
       }
-      if (listingCategory === 'Resale') {
-        schema = schema.merge(z.object({
-          ownershipType: z.enum(['Freehold', 'Leasehold', 'Co-operative Society', 'Power of Attorney'], {
-            errorMap: () => ({ message: 'Ownership type must be Freehold, Leasehold, Co-operative Society, or Power of Attorney' }),
-          }),
-          readyToMove: z.boolean(),
-        }));
-      }
+      break;
+    }
+
+    // ── Builder Floor ───────────────────────────────────────────────────────
+    case 'Builder Floor': {
+      // FIX #10: was building `schema` but never assigning detailsResult — fixed
+      // FIX #11: builderFloorExtra now correctly merged here, not inside Penthouse
+      let schema = residentialBase.merge(builderFloorExtra);
+
       if (listingCategory === 'New') {
         schema = schema.merge(newProjectDetails);
+      } else if (listingCategory === 'Resale') {
+        schema = schema.merge(resaleResidentialExtra);
+      } else {
+        // Rental — doc §17 shows petFriendly / nonVegAllowed
+        schema = schema.merge(z.object({
+          petFriendly:   optionalBool(),
+          nonVegAllowed: optionalBool(),
+        }));
       }
+
       detailsResult = schema.safeParse(details);
       break;
     }
+
+    // ── Penthouse ───────────────────────────────────────────────────────────
+    case 'Penthouse': {
+      // FIX #11: penthouseExtra always merged; removed dead Builder Floor inner check
+      let schema = residentialBase.merge(penthouseExtra);
+
+      if (listingCategory === 'New') {
+        schema = schema.merge(newProjectDetails);
+      } else if (listingCategory === 'Resale') {
+        schema = schema.merge(resaleResidentialExtra);
+      } else {
+        // Rental only — FIX #12: was incorrectly adding these for New too (doc §18)
+        schema = schema.merge(z.object({
+          petFriendly:   optionalBool(),
+          nonVegAllowed: optionalBool(),
+        }));
+      }
+
+      detailsResult = schema.safeParse(details);
+      break;
+    }
+
+    // ── Villa / Independent House ───────────────────────────────────────────
     case 'Villa/Independent House': {
+      // villaBase already includes petFriendly / nonVegAllowed for all categories
       let schema = villaBase;
+
       if (listingCategory === 'Resale') {
+        // doc §5: Villa Resale ownership limited to Freehold / Leasehold / Power of Attorney
         schema = schema.merge(z.object({
           ownershipType: z.enum(['Freehold', 'Leasehold', 'Power of Attorney'], {
             errorMap: () => ({ message: 'Ownership type must be Freehold, Leasehold, or Power of Attorney' }),
           }),
           readyToMove: z.boolean(),
         }));
-      }
-      if (listingCategory === 'New') {
-        schema = schema.merge(newProjectDetails.omit({ approvedBanks: true, ccOcReceived: true }))
+      } else if (listingCategory === 'New') {
+        // doc §27: omit approvedBanks and ccOcReceived for villa new projects
+        schema = schema
+          .merge(newProjectDetails.omit({ approvedBanks: true, ccOcReceived: true }))
           .merge(z.object({ totalVillasInProject: optionalPosNum() }));
       }
+      // Rental: villaBase is sufficient (doc §16)
+
       detailsResult = schema.safeParse(details);
       break;
     }
-    case 'Office Space':
-      detailsResult = (listingCategory === 'New'
-        ? commercialOfficeBase.merge(newProjectDetails)
-        : commercialOfficeBase
-      ).safeParse(details);
+
+    // ── Office Space ────────────────────────────────────────────────────────
+    case 'Office Space': {
+      // FIX #15: ownershipType required for Resale (doc §8), optional for Rental (doc §19)
+      let schema = commercialOfficeBase;
+
+      if (listingCategory === 'New') {
+        schema = schema.merge(newProjectDetails);
+      } else if (listingCategory === 'Resale') {
+        schema = schema.merge(z.object({
+          ownershipType: z.enum(['Freehold', 'Leasehold'], {
+            errorMap: () => ({ message: 'Ownership type must be Freehold or Leasehold' }),
+          }),
+        }));
+      } else {
+        // Rental: ownershipType not shown in doc §19
+        schema = schema;
+      }
+
+      detailsResult = schema.safeParse(details);
       break;
-    case 'Shop':
-      detailsResult = (listingCategory === 'New'
-        ? shopBase.merge(newProjectDetails)
-        : shopBase
-      ).safeParse(details);
+    }
+
+    // ── Shop ────────────────────────────────────────────────────────────────
+    case 'Shop': {
+      // FIX #15: ownershipType required for Resale (doc §9), not shown for Rental (doc §20)
+      let schema = shopBase;
+
+      if (listingCategory === 'New') {
+        schema = schema.merge(newProjectDetails);
+      } else if (listingCategory === 'Resale') {
+        schema = schema.merge(z.object({
+          ownershipType: z.enum(['Freehold', 'Leasehold'], {
+            errorMap: () => ({ message: 'Ownership type must be Freehold or Leasehold' }),
+          }),
+        }));
+      }
+
+      detailsResult = schema.safeParse(details);
       break;
-    case 'Showroom':
-      detailsResult = (listingCategory === 'New'
-        ? showroomBase.merge(newProjectDetails)
-        : showroomBase
-      ).safeParse(details);
+    }
+
+    // ── Showroom ────────────────────────────────────────────────────────────
+    case 'Showroom': {
+      // FIX #15: ownershipType required for Resale (doc §10), not shown for Rental (doc §21)
+      let schema = showroomBase;
+
+      if (listingCategory === 'New') {
+        schema = schema.merge(newProjectDetails);
+      } else if (listingCategory === 'Resale') {
+        schema = schema.merge(z.object({
+          ownershipType: z.enum(['Freehold', 'Leasehold'], {
+            errorMap: () => ({ message: 'Ownership type must be Freehold or Leasehold' }),
+          }),
+        }));
+      }
+
+      detailsResult = schema.safeParse(details);
       break;
+    }
+
+    // ── Warehouse / Godown ──────────────────────────────────────────────────
     case 'Warehouse/Godown': {
       let schema = warehouseBase;
-      if (listingCategory === 'New') {
+
+      if (listingCategory === 'Resale') {
+        schema = schema.merge(z.object({
+          ownershipType: z.enum(['Freehold', 'Leasehold'], {
+            errorMap: () => ({ message: 'Ownership type must be Freehold or Leasehold' }),
+          }),
+        }));
+      } else if (listingCategory === 'New') {
+        // doc §33: projectName / builderName optional, no RERA required for warehouses
         schema = schema.merge(z.object({
           projectName:        optionalString(PROJECT_NAME_MAX_LENGTH, PROJECT_NAME_MAX_LENGTH_MESSAGE),
           builderName:        optionalString(BUILDER_NAME_MAX_LENGTH, BUILDER_NAME_MAX_LENGTH_MESSAGE),
@@ -488,30 +587,49 @@ export function validatePropertyPayload(payload) {
           possessionDate:     z.coerce.date(),
         }));
       }
+
       detailsResult = schema.safeParse(details);
       break;
     }
+
+    // ── Residential Plot ────────────────────────────────────────────────────
     case 'Residential Plot': {
       let schema = residentialPlotBase;
+
       if (listingCategory === 'New') {
         schema = schema.merge(z.object({
-          layoutProjectName:  z.string().max(LAYOUT_PROJECT_NAME_MAX_LENGTH, LAYOUT_PROJECT_NAME_MAX_LENGTH_MESSAGE),
-          builderName:        z.string().max(BUILDER_NAME_MAX_LENGTH, BUILDER_NAME_MAX_LENGTH_MESSAGE),
+          layoutProjectName:  z.string().min(1).max(LAYOUT_PROJECT_NAME_MAX_LENGTH, LAYOUT_PROJECT_NAME_MAX_LENGTH_MESSAGE),
+          builderName:        z.string().min(1).max(BUILDER_NAME_MAX_LENGTH, BUILDER_NAME_MAX_LENGTH_MESSAGE),
           reraNumber:         z.string().regex(RERA_NUMBER_REGEX, 'RERA number is mandatory for new plotted layouts'),
           totalPlotsInLayout: optionalPosNum(),
           plotsAvailable:     z.number({ coerce: true }).min(0).nullable().optional(),
           developmentStatus:  z.enum(DEVELOPMENT_STATUS_OPTIONS, { errorMap: () => ({ message: DEVELOPMENT_STATUS_OPTIONS_MESSAGE }) }),
         }));
+      } else if (listingCategory === 'Resale') {
+        // FIX #17: ownershipType required for Resale (doc §12)
+        schema = schema.merge(z.object({
+          ownershipType: z.enum(['Freehold', 'Leasehold'], {
+            errorMap: () => ({ message: 'Ownership type must be Freehold or Leasehold' }),
+          }),
+        }));
       }
+      // Rental: no ownershipType shown in doc §23
+
       detailsResult = schema.safeParse(details);
       break;
     }
+
+    // ── Agricultural Land ───────────────────────────────────────────────────
     case 'Agricultural Land':
+      // agriLandBase already enforces ownershipType = Individual/Joint/Family (FIX #16)
       detailsResult = agriLandBase.safeParse(details);
       break;
+
+    // ── NA Plot ─────────────────────────────────────────────────────────────
     case 'NA Plot':
       detailsResult = naPlotBase.safeParse(details);
       break;
+
     default:
       return { error: `Unsupported property type: ${propertyType}` };
   }
@@ -524,10 +642,12 @@ export function validatePropertyPayload(payload) {
 
   // ── Validate Pricing ──────────────────────────────────────────────────────
   let pricingResult;
+
   if (listingCategory === 'Resale') {
     pricingResult = resalePricing.safeParse(pricing);
   } else if (listingCategory === 'Rental') {
     if (propertyType === 'Agricultural Land') {
+      // doc §24: agri land rental uses annualLease (required), not monthlyRent
       pricingResult = rentalPricing
         .omit({ monthlyRent: true })
         .merge(z.object({ annualLease: positiveNumber() }))
@@ -549,7 +669,7 @@ export function validatePropertyPayload(payload) {
     data: {
       ...base.data,
       details: detailsResult.data,
-      pricing: pricingResult.data,
+      pricing:  pricingResult.data,
     },
   };
 }
@@ -557,6 +677,5 @@ export function validatePropertyPayload(payload) {
 // ─── Status update schema ─────────────────────────────────────────────────────
 export const updateStatusSchema = z.object({
   status:         z.enum(PROPERTY_STATUSES, { errorMap: () => ({ message: PROPERTY_STATUSES_MESSAGE }) }),
-  adminNotes:     optionalString(ADMIN_NOTES_MAX_LENGTH, ADMIN_NOTES_MAX_LENGTH_MESSAGE),
   rejectedReason: optionalString(REJECTED_REASON_MAX_LENGTH, REJECTED_REASON_MAX_LENGTH_MESSAGE),
 });
