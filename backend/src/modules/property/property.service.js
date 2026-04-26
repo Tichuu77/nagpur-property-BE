@@ -6,7 +6,29 @@ const propertyService = {
    * List properties with server-side filtering and pagination.
    */
   listProperties: async (params) => {
-    return propertyRepository.findAll(params);
+    const  result = await propertyRepository.findAll(params);
+    const properties = result.data;
+    const formatted = properties.map((p) => {
+      const photos = p.photos || [];
+      const video  = p.video ? [p.video] : [];
+      const formattedPhotos = photos.map((url) => {
+        return `${process.env.S3_ENDPOINT}/${process.env.S3_BUCKET}${url}`;
+      });
+      const formattedVideo = video.map((url) => {
+        return `${process.env.S3_ENDPOINT}/${process.env.S3_BUCKET}${url}`;
+      });
+        
+      return {
+        ...p,
+        photos: formattedPhotos,
+        video: formattedVideo.length > 0 ? formattedVideo[0] : null,
+      }
+    });
+
+    return{
+      ...result,
+      data: formatted,
+    } 
   },
 
   /**
@@ -22,6 +44,18 @@ const propertyService = {
   getProperty: async (id) => {
     const property = await propertyRepository.findById(id);
     if (!property) throw { status: 404, message: 'Property not found' };
+    const photos = property.photos || [];
+    const video  = property.video ? [property.video] : [];
+    const formattedPhotos = photos.map((url) => {
+      return `${process.env.S3_ENDPOINT}/${process.env.S3_BUCKET}${url}`;
+    }
+    );
+    const formattedVideo = video.map((url) => {
+      return `${process.env.S3_ENDPOINT}/${process.env.S3_BUCKET}${url}`;
+    }
+    );
+    property.photos = formattedPhotos;
+    property.video = formattedVideo.length > 0 ? formattedVideo[0] : null;
     return property;
   },
 
