@@ -24,12 +24,12 @@ export const getUserActivity = async (req, res, next) => {
 };
 
 /**
- * GET /api/v1/admin/analytics/traffic-sources
+ * GET /api/v1/admin/analytics/subscription-plan-distribution
  */
-export const getTrafficSources = async (req, res, next) => {
+export const getSubscriptionPlanDistribution = async (req, res, next) => {
   try {
-    const data = await analyticsService.getTrafficSources();
-    res.status(200).json(successResponse(data, 'Traffic sources fetched'));
+    const data = await analyticsService.getSubscriptionPlanDistribution();
+    res.status(200).json(successResponse(data, 'Subscription plan distribution fetched'));
   } catch (err) { next(err); }
 };
 

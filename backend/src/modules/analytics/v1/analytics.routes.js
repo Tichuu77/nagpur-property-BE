@@ -4,7 +4,7 @@ import checkPermission from '../../../middlewares/check-permission.middleware.js
 import {
   getOverview,
   getUserActivity,
-  getTrafficSources,
+  getSubscriptionPlanDistribution,
   getMonthlyGrowth,
   getTopBrokers,
   getPropertiesByLocation,
@@ -18,7 +18,7 @@ router.use(checkPermission('analytics'));
 
 router.get('/overview',                  getOverview);
 router.get('/user-activity',             getUserActivity);
-router.get('/traffic-sources',           getTrafficSources);
+router.get('/subscription-plan-distribution', getSubscriptionPlanDistribution);
 router.get('/monthly-growth',            getMonthlyGrowth);
 router.get('/top-brokers',               getTopBrokers);
 router.get('/properties-by-location',    getPropertiesByLocation);

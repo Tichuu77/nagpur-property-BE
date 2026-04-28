@@ -88,40 +88,36 @@ const analyticsService = {
   },
 
   /**
-   * Traffic sources — derived from lead.source field
+   * Subscription plan distribution — active users grouped by plan type
    */
-  getTrafficSources: async () => {
-    const agg = await Lead.aggregate([
-      { $group: { _id: '$source', count: { $sum: 1 } } },
+  getSubscriptionPlanDistribution: async () => {
+    const agg = await User.aggregate([
+      { $group: { _id: '$plan', count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
     ]);
 
     const total = agg.reduce((s, a) => s + a.count, 0) || 1;
 
-    const SOURCE_LABELS  = {
-      admin:    'Direct',
-      website:  'Website',
-      app:      'Mobile App',
-      referral: 'Referral',
+    const PLAN_COLORS = {
+      free:       '#94a3b8',
+      basic:      '#3b82f6',
+      premium:    '#f97316',
+      enterprise: '#8b5cf6',
     };
 
-    const COLORS = ['#f97316', '#fb923c', '#fdba74', '#ffedd5', '#fed7aa'];
+    const PLAN_LABELS = {
+      free:       'Free',
+      basic:      'Basic',
+      premium:    'Premium',
+      enterprise: 'Enterprise',
+    };
 
-    // Fill in missing sources
-    const sources = ['admin', 'website', 'app', 'referral'];
-    const found = new Set(agg.map((a) => a._id));
-
-    const result = sources.map((src, i) => {
-      const match = agg.find((a) => a._id === src);
-      const count = match ? match.count : Math.round(total * [0.35, 0.3, 0.2, 0.15][i]);
-      return {
-        name:       SOURCE_LABELS[src] ?? src,
-        value:      Math.round((count / total) * 100),
-        color:      COLORS[i],
-        rawCount:   count,
-      };
-    });
-
-    return result;
+    return agg.map((item) => ({
+      name:       PLAN_LABELS[item._id] ?? item._id,
+      value:      item.count,
+      percentage: Math.round((item.count / total) * 100),
+      color:      PLAN_COLORS[item._id] ?? '#cbd5e1',
+    }));
   },
 
   /**
