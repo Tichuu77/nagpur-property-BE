@@ -9,7 +9,7 @@ const fileFilter = (_req, file, cb) => {
     'image/jpeg',
     'image/png',
     'image/webp',
-    'application/pdf',
+    'video/mp4', //videos
   ];
 
   if (allowedTypes.includes(file.mimetype)) {
@@ -20,7 +20,7 @@ const fileFilter = (_req, file, cb) => {
 };
 
 const limits = {
-  fileSize: 10 * 1024 * 1024, // 10MB
+  fileSize:  50 * 1024 * 1024 // 50MB
 };
 
 const upload = multer({ storage, fileFilter, limits });

@@ -124,6 +124,9 @@ const WATER_SUPPLY_MESSAGE = `Water supply must be one of: ${WATER_SUPPLY.join('
 const ELECTRICITY_STATUS = ['Metered', 'Non-metered', 'Pre-paid'];
 const ELECTRICITY_STATUS_MESSAGE = `Electricity status must be one of: ${ELECTRICITY_STATUS.join(', ')}`;
 
+const POSSESSION_DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+const POSSESSION_DATE_REGEX_MESSAGE = 'Possession date must be in YYYY-MM-DD format';
+
 // Full ownership list — individual property type schemas narrow this down as needed
 const OWNERSHIP_TYPES = [
   'Freehold',
@@ -197,8 +200,6 @@ const LEASE_DURATION_OPTIONS_MESSAGE = `Lease duration must be one of: ${LEASE_D
 const LOCK_IN_PERIOD_OPTIONS = ['None', '3 months', '6 months', '1 year'];
 const LOCK_IN_PERIOD_OPTIONS_MESSAGE = `Lock-in period must be one of: ${LOCK_IN_PERIOD_OPTIONS.join(', ')}`;
 
-const RERA_NUMBER_REGEX = /^P52100\d{6}$/;
-const RERA_NUMBER_REGEX_MESSAGE = 'Enter a valid MahaRERA number (P52100XXXXXX)';
 
 // ─── String length limits ─────────────────────────────────────────────────────
 
@@ -374,8 +375,6 @@ export {
   LEASE_DURATION_OPTIONS_MESSAGE,
   LOCK_IN_PERIOD_OPTIONS,
   LOCK_IN_PERIOD_OPTIONS_MESSAGE,
-  RERA_NUMBER_REGEX,
-  RERA_NUMBER_REGEX_MESSAGE,
   TITLE_MAX_LENGTH,
   TITLE_MAX_LENGTH_MESSAGE,
   DESCRIPTION_MIN_LENGTH,
@@ -428,4 +427,7 @@ export {
   NUMBER_OF_DOCKS_MIN,
   NUMBER_OF_DOCKS_MAX,
   NUMBER_OF_DOCKS_MESSAGE,
+  POSSESSION_DATE_REGEX,
+  POSSESSION_DATE_REGEX_MESSAGE,
+  
 };

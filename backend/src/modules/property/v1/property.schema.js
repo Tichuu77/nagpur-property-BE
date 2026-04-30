@@ -78,8 +78,6 @@ import {
   LEASE_DURATION_OPTIONS_MESSAGE,
   LOCK_IN_PERIOD_OPTIONS,
   LOCK_IN_PERIOD_OPTIONS_MESSAGE,
-  RERA_NUMBER_REGEX,
-  RERA_NUMBER_REGEX_MESSAGE,
   TITLE_MAX_LENGTH,
   TITLE_MAX_LENGTH_MESSAGE,
   DESCRIPTION_MIN_LENGTH,
@@ -130,6 +128,8 @@ import {
   NUMBER_OF_DOCKS_MESSAGE,
   OWNERSHIP_TYPES,
   OWNERSHIP_TYPES_MESSAGE,
+  POSSESSION_DATE_REGEX,
+  POSSESSION_DATE_REGEX_MESSAGE,
 } from '../../../constants/property.constants.js';
 // FIX #9: removed unused `import { de } from 'zod/v4/locales'`
 
@@ -171,7 +171,7 @@ const residentialBase = z.object({
   waterSupply:       optionalEnum(WATER_SUPPLY, WATER_SUPPLY_MESSAGE),
   electricityStatus: optionalEnum(ELECTRICITY_STATUS, ELECTRICITY_STATUS_MESSAGE),
   reraRegistered:    optionalBool(),
-  reraNumber:        z.string().regex(RERA_NUMBER_REGEX, RERA_NUMBER_REGEX_MESSAGE).nullable().optional(),
+  reraNumber:        z.string().nullable().optional(),
 });
 
 const villaBase = z.object({
@@ -193,7 +193,7 @@ const villaBase = z.object({
   floorType:        optionalEnum(FLOOR_TYPE, FLOOR_TYPE_MESSAGE),
   ageOfProperty:    optionalEnum(AGE_OF_PROPERTY, AGE_OF_PROPERTY_MESSAGE),
   reraRegistered:   optionalBool(),
-  reraNumber:       z.string().regex(RERA_NUMBER_REGEX, RERA_NUMBER_REGEX_MESSAGE).nullable().optional(),
+  reraNumber:       z.string().nullable().optional(),
   // pet / diet prefs shown for all villa categories (doc §5, §16, §27)
   petFriendly:      optionalBool(),
   nonVegAllowed:    optionalBool(),
@@ -362,7 +362,7 @@ const newPricing = z.object({
   priceRange:     optionalString(PRICE_RANGE_MAX_LENGTH, PRICE_RANGE_MAX_LENGTH_MESSAGE),
   bookingAmount:  optionalPosNum(),
   gstApplicable:  optionalBool(),
-  possessionDate: z.coerce.date(),
+  possessionDate:  z.string ().regex(POSSESSION_DATE_REGEX, POSSESSION_DATE_REGEX_MESSAGE),
   brokerage:      optionalString(BROKERAGE_MAX_LENGTH, BROKERAGE_MAX_LENGTH_MESSAGE),
 });
 
@@ -370,10 +370,10 @@ const newPricing = z.object({
 const newProjectDetails = z.object({
   projectName:         z.string().min(1).max(PROJECT_NAME_MAX_LENGTH, PROJECT_NAME_MAX_LENGTH_MESSAGE),
   builderName:         z.string().min(1).max(BUILDER_NAME_MAX_LENGTH, BUILDER_NAME_MAX_LENGTH_MESSAGE),
-  reraNumber:          z.string().regex(RERA_NUMBER_REGEX, RERA_NUMBER_REGEX_MESSAGE),
+  reraNumber:          z.string(),
   reraValidityDate:    z.coerce.date().nullable().optional(),
   constructionStatus:  z.enum(CONSTRUCTION_STATUS_OPTIONS, { errorMap: () => ({ message: CONSTRUCTION_STATUS_OPTIONS_MESSAGE }) }),
-  possessionDate:      z.coerce.date(),
+  possessionDate:      z.string().regex(POSSESSION_DATE_REGEX, POSSESSION_DATE_REGEX_MESSAGE),
   totalUnitsInProject: optionalPosNum(),
   unitsAvailable:      z.number({ coerce: true }).min(0).nullable().optional(),
   towerWing:           optionalString(TOWER_WING_MAX_LENGTH, TOWER_WING_MAX_LENGTH_MESSAGE),
@@ -600,7 +600,7 @@ export function validatePropertyPayload(payload) {
         schema = schema.merge(z.object({
           layoutProjectName:  z.string().min(1).max(LAYOUT_PROJECT_NAME_MAX_LENGTH, LAYOUT_PROJECT_NAME_MAX_LENGTH_MESSAGE),
           builderName:        z.string().min(1).max(BUILDER_NAME_MAX_LENGTH, BUILDER_NAME_MAX_LENGTH_MESSAGE),
-          reraNumber:         z.string().regex(RERA_NUMBER_REGEX, 'RERA number is mandatory for new plotted layouts'),
+          reraNumber:         z.string(),
           totalPlotsInLayout: optionalPosNum(),
           plotsAvailable:     z.number({ coerce: true }).min(0).nullable().optional(),
           developmentStatus:  z.enum(DEVELOPMENT_STATUS_OPTIONS, { errorMap: () => ({ message: DEVELOPMENT_STATUS_OPTIONS_MESSAGE }) }),

@@ -93,8 +93,6 @@ import {
   LEASE_DURATION_OPTIONS_MESSAGE,
   LOCK_IN_PERIOD_OPTIONS,
   LOCK_IN_PERIOD_OPTIONS_MESSAGE,
-  RERA_NUMBER_REGEX,
-  RERA_NUMBER_REGEX_MESSAGE,
   TITLE_MAX_LENGTH,
   TITLE_MAX_LENGTH_MESSAGE,
   DESCRIPTION_MIN_LENGTH,
@@ -303,7 +301,7 @@ const detailsSchema = new mongoose.Schema({
 
   // ── RERA ──────────────────────────────────────────────────────────────────
   reraRegistered:  { type: Boolean, default: null },
-  reraNumber:      { type: String, match: [RERA_NUMBER_REGEX, RERA_NUMBER_REGEX_MESSAGE], default: null },
+  reraNumber:      { type: String, default: null },
   reraValidityDate:{ type: Date, default: null },
 
   // ── New Project specific ──────────────────────────────────────────────────
