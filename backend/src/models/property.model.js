@@ -401,7 +401,7 @@ const propertySchema = new mongoose.Schema(
     status: {
       type: String,
       enum: { values: PROPERTY_STATUSES, message: PROPERTY_STATUSES_MESSAGE },
-      default: 'Pending',
+      default: 'Active',
       index: true,
     },
     featured: { type: Boolean, default: false, index: true },

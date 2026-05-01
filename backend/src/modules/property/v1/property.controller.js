@@ -85,7 +85,7 @@ export const createProperty = async (req, res, next) => {
     }
 
     const { error, data } = validatePropertyPayload(body);
-    if (error) return next({ status: 400, message: error });
+    if (error) return next({ status: 400, message: error,errors: error.errors });
 
     const photoFiles = req.files?.photos || [];
     const videoFile  = req.files?.video?.[0] || null;
@@ -126,7 +126,7 @@ export const updateProperty = async (req, res, next) => {
     // Otherwise do a partial update with basic schema check
     if (body.listingCategory && body.propertyType) {
       const { error, data } = validatePropertyPayload(body);
-      if (error) return next({ status: 400, message: error });
+      if (error) return next({ status: 400, message: error,errors: error.errors });
       body = data;
     }
 
