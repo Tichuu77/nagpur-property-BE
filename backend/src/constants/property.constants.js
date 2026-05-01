@@ -17,7 +17,7 @@ const PROPERTY_TYPES = [
 const PROPERTY_TYPES_MESSAGE = `Property type must be one of: ${PROPERTY_TYPES.join(', ')}`;
 
 // FIX #2: Added 'Pending' so the model default is a valid enum value
-const PROPERTY_STATUSES = ['Pending', 'Active', 'Rejected', 'Sold', 'Inactive'];
+const PROPERTY_STATUSES = ['Active', 'Rejected', 'Sold', 'Inactive'];
 const PROPERTY_STATUSES_MESSAGE = `Property status must be one of: ${PROPERTY_STATUSES.join(', ')}`;
 
 const FURNISHING_OPTIONS = [
