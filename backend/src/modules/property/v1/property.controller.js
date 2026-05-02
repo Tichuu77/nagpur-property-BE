@@ -1,11 +1,8 @@
 import propertyService from '../property.service.js';
 import { successResponse } from '../../../utils/api-response.js';
-import { validatePropertyPayload, updateStatusSchema } from './property.schema.js';
 
 /**
  * GET /api/v1/admin/properties
- * Query params: search, status, listingCategory, propertyType, locality,
- *               brokerId, featured, dateFrom, dateTo, page, limit
  */
 export const listProperties = async (req, res, next) => {
   try {
@@ -60,33 +57,12 @@ export const getProperty = async (req, res, next) => {
 
 /**
  * POST /api/v1/admin/properties
- * Body: multipart/form-data
- *   - JSON fields in field 'data' (stringified) OR as flat form fields
- *   - photos: up to 15 image files (field name 'photos')
- *   - video: optional video file  (field name 'video')
+ *
+ * req.validatedBody — set by validateProperty middleware (route level)
+ * req.files         — set by multer (upload middleware)
  */
 export const createProperty = async (req, res, next) => {
   try {
-    // Parse body — supports both JSON string in 'data' field and flat body
-    let body;
-    if (req.body?.data) {
-      try { body = JSON.parse(req.body.data); }
-      catch { return next({ status: 400, message: 'Invalid JSON in data field' }); }
-    } else {
-      body = req.body;
-      // Nested objects may arrive as strings from multipart
-      ['details', 'pricing', 'location', 'amenities'].forEach((key) => {
-        if (typeof body[key] === 'string') {
-          try { body[key] = JSON.parse(body[key]); } catch {
-            return next({ status: 400, message: `Invalid JSON in ${key} field` });
-          }
-        }
-      });
-    }
-
-    const { error, data } = validatePropertyPayload(body);
-    if (error) return next({ status: 400, message: error,errors: error.errors });
-
     const photoFiles = req.files?.photos || [];
     const videoFile  = req.files?.video?.[0] || null;
 
@@ -94,7 +70,7 @@ export const createProperty = async (req, res, next) => {
       return next({ status: 400, message: 'At least one property photo is required' });
     }
 
-    const property = await propertyService.createProperty(data, photoFiles, videoFile);
+    const property = await propertyService.createProperty(req.validatedBody, photoFiles, videoFile);
     res.status(201).json(successResponse(property, 'Property created successfully'));
   } catch (err) {
     next(err);
@@ -103,38 +79,17 @@ export const createProperty = async (req, res, next) => {
 
 /**
  * PUT /api/v1/admin/properties/:id
- * Same multipart structure as POST. Only provided fields are updated.
+ *
+ * req.validatedBody — set by validatePropertyUpdate middleware (route level)
+ * req.files         — set by multer (upload middleware)
  */
 export const updateProperty = async (req, res, next) => {
   try {
-    let body;
-    if (req.body?.data) {
-      try { body = JSON.parse(req.body.data); }
-      catch { return next({ status: 400, message: 'Invalid JSON in data field' }); }
-    } else {
-      body = req.body;
-      ['details', 'pricing', 'location', 'amenities'].forEach((key) => {
-        if (typeof body[key] === 'string') {
-          try { body[key] = JSON.parse(body[key]); } catch {
-            return next({ status: 400, message: `Invalid JSON in ${key} field` });
-          }
-        }
-      });
-    }
-
-    // For updates, validate only if category+type provided
-    // Otherwise do a partial update with basic schema check
-    if (body.listingCategory && body.propertyType) {
-      const { error, data } = validatePropertyPayload(body);
-      if (error) return next({ status: 400, message: error,errors: error.errors });
-      body = data;
-    }
-
     const photoFiles = req.files?.photos || [];
     const videoFile  = req.files?.video?.[0] || null;
 
     const property = await propertyService.updateProperty(
-      req.params.id, body, photoFiles, videoFile
+      req.params.id, req.validatedBody, photoFiles, videoFile
     );
     res.status(200).json(successResponse(property, 'Property updated successfully'));
   } catch (err) {
@@ -156,24 +111,17 @@ export const deleteProperty = async (req, res, next) => {
 
 /**
  * PATCH /api/v1/admin/properties/:id/status
- * Body: { status, adminNotes?, rejectedReason? }
+ *
+ * req.body is already coerced + validated by validate(updateStatusSchema)
+ * middleware at the route level — no re-parsing needed here.
  */
 export const updateStatus = async (req, res, next) => {
   try {
-    const result = updateStatusSchema.safeParse(req.body);
-    if (!result.success) {
-      return next({
-        status: 400,
-        message: result.error.issues.map((i) => i.message).join('; '),
-      });
-    }
-
-    const { status, adminNotes, rejectedReason } = result.data;
+    const { status, adminNotes, rejectedReason } = req.body;
     const property = await propertyService.updateStatus(
       req.params.id, status, { adminNotes, rejectedReason }
     );
-    const label = status.toLowerCase();
-    res.status(200).json(successResponse(property, `Property ${label} successfully`));
+    res.status(200).json(successResponse(property, `Property ${status.toLowerCase()} successfully`));
   } catch (err) {
     next(err);
   }
@@ -181,8 +129,7 @@ export const updateStatus = async (req, res, next) => {
 
 /**
  * PATCH /api/v1/admin/properties/:id/featured
- * Body: { featured: boolean } — explicit set
- *   OR  no body          — toggle
+ * Body: { featured: true|false }  — or omit body to toggle
  */
 export const toggleFeatured = async (req, res, next) => {
   try {
@@ -201,7 +148,7 @@ export const toggleFeatured = async (req, res, next) => {
 
 /**
  * PATCH /api/v1/admin/properties/:id/remove-photos
- * Body: { photoUrls: string[] }
+ * Body: { photoUrls: ['https://...', ...] }
  */
 export const removePhotos = async (req, res, next) => {
   try {

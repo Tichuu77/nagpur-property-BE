@@ -4,9 +4,6 @@ import { successResponse } from '../../../utils/api-response.js';
 export const getProfile = async (req, res, next) => {
   try {
     const data = await  AdminService.getProfile(req.user.id);
-    if(data?.avatar){
-      data.avatar = `${process.env.S3_ENDPOINT}/${process.env.S3_BUCKET}${data.avatar}`
-    }
     res.status(200).json(successResponse(data));
   } catch (err) {
     next(err);
@@ -16,9 +13,6 @@ export const getProfile = async (req, res, next) => {
 export const updateProfile = async (req, res, next) => {
   try {
     const data = await  AdminService.updateProfile(req.user.id, req.body, req.file);
-    if(data?.avatar){
-      data.avatar = `${process.env.S3_ENDPOINT}/${process.env.S3_BUCKET}${data.avatar}`
-    }
     res.status(200).json(successResponse(data, 'Profile updated'));
   } catch (err) {
     next(err);

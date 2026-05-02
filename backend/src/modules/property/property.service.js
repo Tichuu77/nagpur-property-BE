@@ -1,34 +1,15 @@
 import propertyRepository from '../../modules/property/property.repository.js';
 import storageService from '../../services/storage.service.js';
 
+ 
+
 const propertyService = {
   /**
    * List properties with server-side filtering and pagination.
    */
   listProperties: async (params) => {
-    const  result = await propertyRepository.findAll(params);
-    const properties = result.data;
-    const formatted = properties.map((p) => {
-      const photos = p.photos || [];
-      const video  = p.video ? [p.video] : [];
-      const formattedPhotos = photos.map((url) => {
-        return `${process.env.S3_ENDPOINT}/${process.env.S3_BUCKET}${url}`;
-      });
-      const formattedVideo = video.map((url) => {
-        return `${process.env.S3_ENDPOINT}/${process.env.S3_BUCKET}${url}`;
-      });
-        
-      return {
-        ...p,
-        photos: formattedPhotos,
-        video: formattedVideo.length > 0 ? formattedVideo[0] : null,
-      }
-    });
-
-    return{
-      ...result,
-      data: formatted,
-    } 
+    const result = await propertyRepository.findAll(params);
+    return result 
   },
 
   /**
@@ -40,57 +21,39 @@ const propertyService = {
 
   /**
    * Get a single property by ID
+   * FIX: findById now uses .lean() so we get a plain object — safe to mutate/spread
    */
   getProperty: async (id) => {
     const property = await propertyRepository.findById(id);
     if (!property) throw { status: 404, message: 'Property not found' };
-    const photos = property.photos || [];
-    const video  = property.video ? [property.video] : [];
-    const formattedPhotos = photos.map((url) => {
-      return `${process.env.S3_ENDPOINT}/${process.env.S3_BUCKET}${url}`;
-    }
-    );
-    const formattedVideo = video.map((url) => {
-      return `${process.env.S3_ENDPOINT}/${process.env.S3_BUCKET}${url}`;
-    }
-    );
-    property.photos = formattedPhotos;
-    property.video = formattedVideo.length > 0 ? formattedVideo[0] : null;
     return property;
   },
 
   /**
-   * Create a new property (admin creates on behalf of broker)
-   * Handles up to 15 photo uploads + 1 video upload via S3.
+   * Create a new property
    */
   createProperty: async (payload, photoFiles = [], videoFile = null) => {
-    // Upload photos
     if (photoFiles.length > 15) {
       throw { status: 400, message: 'Maximum 15 photos allowed' };
     }
 
-    let photos = [];
-    if (photoFiles.length > 0) {
-      const uploads = await Promise.all(
-        photoFiles.map((f) => storageService.upload(f, 'properties'))
-      );
-      photos = uploads.map((u) => u.url);
-    }
-
-    // Upload video
-    let video = null;
-    if (videoFile) {
-      const uploaded = await storageService.upload(videoFile, 'properties/videos');
-      video = uploaded.url;
-    }
+    const [photoUploads, videoUpload] = await Promise.all([
+      photoFiles.length > 0
+        ? Promise.all(photoFiles.map((f) => storageService.upload(f, 'properties')))
+        : Promise.resolve([]),
+      videoFile
+        ? storageService.upload(videoFile, 'properties/videos')
+        : Promise.resolve(null),
+    ]);
 
     const property = await propertyRepository.create({
       ...payload,
-      photos,
-      video,
+      photos: photoUploads.map((u) => u.url),
+      video:  videoUpload ? videoUpload.url : null,
     });
 
-    return property;
+    // create returns a mongoose doc — convert to plain object for media formatting
+    return  property
   },
 
   /**
@@ -100,7 +63,6 @@ const propertyService = {
     const existing = await propertyRepository.findByIdRaw(id);
     if (!existing) throw { status: 404, message: 'Property not found' };
 
-    // Handle new photo uploads (append to existing)
     let photos = existing.photos || [];
     if (photoFiles.length > 0) {
       if (photos.length + photoFiles.length > 15) {
@@ -112,9 +74,17 @@ const propertyService = {
       photos = [...photos, ...uploads.map((u) => u.url)];
     }
 
-    // Handle video upload
     let video = existing.video;
-    if (videoFile) {
+    if (payload.removeVideo) {
+      // FIX: support explicit video removal flag from frontend
+      if (video) {
+        try {
+          await storageService.delete(video);
+        } catch { /* best effort */ }
+      }
+      video = null;
+      delete payload.removeVideo;
+    } else if (videoFile) {
       const uploaded = await storageService.upload(videoFile, 'properties/videos');
       video = uploaded.url;
     }
@@ -125,7 +95,7 @@ const propertyService = {
       video,
     });
 
-    return updated;
+    return  updated
   },
 
   /**
@@ -135,14 +105,16 @@ const propertyService = {
     const property = await propertyRepository.findByIdRaw(id);
     if (!property) throw { status: 404, message: 'Property not found' };
 
-    // Delete photos from S3 (best effort)
-    if (property.photos?.length > 0) {
+    const filesToDelete = [
+      ...(property.photos || []),
+      ...(property.video ? [property.video] : []),
+    ];
+
+    if (filesToDelete.length > 0) {
       await Promise.allSettled(
-        property.photos.map((url) => {
-          // Extract S3 key from URL
+        filesToDelete.map((url) => {
           try {
-            const key =  url.startsWith('/') ? url.slice(1) : url;
-            return storageService.delete(key);
+            return storageService.delete(url);
           } catch {
             return Promise.resolve();
           }
@@ -154,17 +126,18 @@ const propertyService = {
   },
 
   /**
-   * Change property status (approve / reject / activate / deactivate / mark sold etc.)
+   * Change property status
    */
   updateStatus: async (id, status, options = {}) => {
     const property = await propertyRepository.findByIdRaw(id);
     if (!property) throw { status: 404, message: 'Property not found' };
 
     const update = { status };
-    if (options.adminNotes)    update.adminNotes    = options.adminNotes;
+    if (options.adminNotes)     update.adminNotes     = options.adminNotes;
     if (options.rejectedReason) update.rejectedReason = options.rejectedReason;
 
-    return propertyRepository.updateById(id, update);
+    const updated = await propertyRepository.updateById(id, update);
+    return formatPropertyMedia(updated.toObject ? updated.toObject() : updated);
   },
 
   /**
@@ -174,7 +147,8 @@ const propertyService = {
     const property = await propertyRepository.findByIdRaw(id);
     if (!property) throw { status: 404, message: 'Property not found' };
 
-    return propertyRepository.updateById(id, { featured: !property.featured });
+    const updated = await propertyRepository.updateById(id, { featured: !property.featured });
+    return formatPropertyMedia(updated.toObject ? updated.toObject() : updated);
   },
 
   /**
@@ -184,11 +158,12 @@ const propertyService = {
     const property = await propertyRepository.findByIdRaw(id);
     if (!property) throw { status: 404, message: 'Property not found' };
 
-    return propertyRepository.updateById(id, { featured: !!featured });
+    const updated = await propertyRepository.updateById(id, { featured: !!featured });
+    return formatPropertyMedia(updated.toObject ? updated.toObject() : updated);
   },
 
   /**
-   * Remove specific photos by index or URL
+   * Remove specific photos by URL
    */
   removePhotos: async (id, photoUrls) => {
     const property = await propertyRepository.findByIdRaw(id);
@@ -199,19 +174,18 @@ const propertyService = {
       throw { status: 400, message: 'Property must have at least one photo' };
     }
 
-    // Delete removed photos from S3
     await Promise.allSettled(
       photoUrls.map((url) => {
         try {
-          const key = url.startsWith('/') ? url.slice(1) : url;
-          return storageService.delete(key);
+          return storageService.delete(url);
         } catch {
           return Promise.resolve();
         }
       })
     );
 
-    return propertyRepository.updateById(id, { photos: remaining });
+    const updated = await propertyRepository.updateById(id, { photos: remaining });
+    return  updated
   },
 };
 

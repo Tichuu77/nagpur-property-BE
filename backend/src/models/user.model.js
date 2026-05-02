@@ -45,22 +45,7 @@ const userSchema = new mongoose.Schema(
       maxlength: 200,
     },
 
-    // ─── Plan & Subscription ──────────────────────────────────────────────
-    plan: {
-      type: String,
-      enum: {
-        values: ['free', 'basic', 'premium', 'enterprise'],
-        message: 'plan must be one of: free, basic, premium, enterprise',
-      },
-      default: 'free',
-    },
-
-    // Optional expiry date for paid plans (null = no expiry / free plan)
-    planExpiry: {
-      type: Date,
-      default: null,
-    },
-
+   
     // ─── Misc ─────────────────────────────────────────────────────────────
     fcmToken:  { type: String },
     avatar:    { type: String },

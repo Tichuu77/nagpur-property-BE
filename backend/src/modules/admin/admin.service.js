@@ -20,8 +20,7 @@ const AdminService = {
       if (uploaded) {
         const existingAdmin = await AdminRepository.findById(adminId);
         if (existingAdmin?.avatar) {
-          const key = existingAdmin.avatar.startsWith('/') ? existingAdmin.avatar.slice(1) : existingAdmin.avatar;
-          await storageService.delete(key);
+          await storageService.delete( existingAdmin.avatar );
         }
         avatar = uploaded?.url;
       }

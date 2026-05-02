@@ -8,9 +8,9 @@ import staticPagesRoutes  from '../../modules/static-page/v1/static-pages.routes
 import adminPagesRoutes   from '../../modules/static-page/v1/admin-pages.routes.js';
 
 // Existing module route handlers (add yours here as they are built)
-import propertyRoutes     from '../../modules/property/v1/property.routes.js';
+import propertyRoutes     from '../../modules/property/v1/admin.property.routes.js';
 import userRoutes       from '../../modules/user/v1/user.routes.js';
-import planRoutes from '../../modules/subscription/v1/plan.routes.js';
+import planRoutes from '../../modules/subscription/v1/admin.plan.routes.js';
 import leadRoutes from '../../modules/lead/v1/lead.routes.js';
 import analyticsRoutes from '../../modules/analytics/v1/analytics.routes.js';
 import revenueRoutes from '../../modules/revenue/v1/revenue.routes.js';

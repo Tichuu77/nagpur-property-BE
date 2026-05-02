@@ -2,6 +2,10 @@ import { Router } from 'express';
 import authMiddleware from '../../../middlewares/auth.middleware.js';
 import checkPermission from '../../../middlewares/check-permission.middleware.js';
 import upload from '../../../config/storage.config.js';
+import validate from '../../../middlewares/validate.middleware.js';
+import { parsePropertyBody } from './parsePropertyBody.middleware.js';
+import { validateProperty, validatePropertyUpdate } from './validateProperty.middleware.js';
+import { updateStatusSchema } from './property.schema.js';
 import {
   listProperties,
   getStats,
@@ -28,12 +32,12 @@ router.get('/', listProperties);
 
 /**
  * POST /api/v1/admin/properties
- * Accepts multipart/form-data:
- *   Field 'data'   → JSON string with all property fields
- *   Field 'photos' → up to 15 image files
- *   Field 'video'  → optional 1 video file
  *
- * OR flat form fields (details/pricing/location as JSON strings)
+ * Middleware chain (order matters):
+ *   1. upload        — multer parses multipart, populates req.body + req.files
+ *   2. parsePropertyBody — normalises Shape A / Shape B → req.parsedBody
+ *   3. validateProperty  — full Zod validation → req.validatedBody
+ *   4. createProperty    — controller, reads req.validatedBody + req.files
  */
 router.post(
   '/',
@@ -41,18 +45,28 @@ router.post(
     { name: 'photos', maxCount: 15 },
     { name: 'video',  maxCount: 1  },
   ]),
+  parsePropertyBody,
+  validateProperty,
   createProperty
 );
 
 // ── Document routes ────────────────────────────────────────────────────────────
 router.get('/:id', getProperty);
 
+/**
+ * PUT /api/v1/admin/properties/:id
+ *
+ * Same chain as POST but uses validatePropertyUpdate which allows
+ * partial updates (no listingCategory+propertyType = skip full validation).
+ */
 router.put(
   '/:id',
   upload.fields([
     { name: 'photos', maxCount: 15 },
     { name: 'video',  maxCount: 1  },
   ]),
+  parsePropertyBody,
+  validatePropertyUpdate,
   updateProperty
 );
 
@@ -61,14 +75,11 @@ router.delete('/:id', deleteProperty);
 // ── Status management ──────────────────────────────────────────────────────────
 /**
  * PATCH /api/v1/admin/properties/:id/status
- * Body: { status: 'Active'|'Rejected'|'Inactive'|'Sold'|'Rented'|..., adminNotes?, rejectedReason? }
+ * Body: { status: 'Active'|'Rejected'|'Inactive'|'Sold', adminNotes?, rejectedReason? }
  *
- * Common usage:
- *   Approve → { status: 'Active' }
- *   Reject  → { status: 'Rejected', rejectedReason: '...' }
- *   Mark sold → { status: 'Sold' }
+ * validate() coerces + validates req.body in-place before the controller runs.
  */
-router.patch('/:id/status', updateStatus);
+router.patch('/:id/status', validate(updateStatusSchema), updateStatus);
 
 /**
  * PATCH /api/v1/admin/properties/:id/featured

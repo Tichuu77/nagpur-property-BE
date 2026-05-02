@@ -44,9 +44,11 @@ const storageService = {
   },
 
   // 🔹 Delete from S3
-  delete: async (key) => {
+  delete: async (url) => {
     try {
       const s3 = initS3();
+
+      let key = url.startsWith('/') ? url.slice(1) : url;
 
       const command = new DeleteObjectCommand({
         Bucket: env.S3_BUCKET,

@@ -4,23 +4,10 @@ const propertyRepository = {
   /**
    * Create a new property
    */
-  create: (payload) => Property.create(payload),
+  create: (payload) => Property.create(payload).lean,
 
   /**
    * Find all properties with server-side filtering, search, and pagination.
-   * @param {Object} options
-   * @param {string}  options.search        - Full-text search
-   * @param {string}  options.status        - Filter by status
-   * @param {string}  options.listingCategory
-   * @param {string}  options.propertyType
-   * @param {string}  options.locality
-   * @param {string}  options.brokerId      - Filter by broker
-   * @param {boolean} options.featured
-   * @param {string}  options.dateFrom      - ISO date string
-   * @param {string}  options.dateTo        - ISO date string
-   * @param {number}  options.page
-   * @param {number}  options.limit
-   * @returns {{ data, total, page, limit, totalPages }}
    */
   findAll: async ({
     search,
@@ -88,23 +75,26 @@ const propertyRepository = {
   },
 
   /**
-   * Find property by ID, populated with broker info
+   * Find property by ID, populated with broker info.
+   * FIX: use .lean() so service gets a plain object (safe to spread/mutate for media formatting)
    */
   findById: (id) =>
     Property.findById(id)
-      .populate('brokerId', 'name mobile email city area avatar'),
+      .populate('brokerId', 'name mobile email city area avatar')
+      .lean(),
 
   /**
-   * Find by ID without populate (raw, for mutations)
+   * Find by ID without populate (raw mongoose doc, for mutations)
    */
   findByIdRaw: (id) => Property.findById(id),
 
   /**
-   * Update property
+   * Update property — returns populated plain object via lean
    */
   updateById: (id, update, options = { new: true }) =>
     Property.findByIdAndUpdate(id, update, { ...options, runValidators: true })
-      .populate('brokerId', 'name mobile email city area avatar'),
+      .populate('brokerId', 'name mobile email city area avatar')
+      .lean(),
 
   /**
    * Delete property
@@ -112,36 +102,37 @@ const propertyRepository = {
   deleteById: (id) => Property.findByIdAndDelete(id),
 
   /**
-   * Aggregate admin-facing stats
+   * Aggregate admin-facing stats.
+   * FIX: only query statuses that exist in PROPERTY_STATUSES constant.
+   *      Removed 'Draft' (not in schema). 'Pending' and 'Rented' added to constants.
    */
   getStats: async () => {
-    const [total, active, pending, rejected, featured, sold, rented] = await Promise.all([
-      Property.countDocuments(),
-      Property.countDocuments({ status: 'Active' }),
-      Property.countDocuments({ status: 'Pending' }),
-      Property.countDocuments({ status: 'Rejected' }),
-      Property.countDocuments({ featured: true }),
-      Property.countDocuments({ status: 'Sold' }),
-      Property.countDocuments({ status: 'Rented' }),
-    ]);
+    const [total, active, pending, rejected, featured, sold, rented, inactive] =
+      await Promise.all([
+        Property.countDocuments(),
+        Property.countDocuments({ status: 'Active' }),
+        Property.countDocuments({ status: 'Pending' }),
+        Property.countDocuments({ status: 'Rejected' }),
+        Property.countDocuments({ featured: true }),
+        Property.countDocuments({ status: 'Sold' }),
+        Property.countDocuments({ status: 'Rented' }),
+        Property.countDocuments({ status: 'Inactive' }),
+      ]);
 
-    // Category distribution
-    const categoryBreakdown = await Property.aggregate([
-      { $group: { _id: '$listingCategory', count: { $sum: 1 } } },
-      { $sort: { count: -1 } },
-    ]);
-
-    // Type distribution
-    const typeBreakdown = await Property.aggregate([
-      { $group: { _id: '$propertyType', count: { $sum: 1 } } },
-      { $sort: { count: -1 } },
-    ]);
-
-    // Locality distribution
-    const localityBreakdown = await Property.aggregate([
-      { $group: { _id: '$location.locality', count: { $sum: 1 } } },
-      { $sort: { count: -1 } },
-      { $limit: 10 },
+    const [categoryBreakdown, typeBreakdown, localityBreakdown] = await Promise.all([
+      Property.aggregate([
+        { $group: { _id: '$listingCategory', count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+      ]),
+      Property.aggregate([
+        { $group: { _id: '$propertyType', count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+      ]),
+      Property.aggregate([
+        { $group: { _id: '$location.locality', count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: 10 },
+      ]),
     ]);
 
     return {
@@ -152,27 +143,19 @@ const propertyRepository = {
       featured,
       sold,
       rented,
+      inactive,
       categoryBreakdown,
       typeBreakdown,
       localityBreakdown,
     };
   },
 
-  /**
-   * Increment view count atomically
-   */
   incrementViews: (id) =>
     Property.findByIdAndUpdate(id, { $inc: { views: 1 } }, { new: true }),
 
-  /**
-   * Increment inquiry count atomically
-   */
   incrementInquiries: (id) =>
     Property.findByIdAndUpdate(id, { $inc: { inquiries: 1 } }, { new: true }),
 
-  /**
-   * Count properties by broker
-   */
   countByBroker: (brokerId) => Property.countDocuments({ brokerId }),
 };
 
