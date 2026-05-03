@@ -3,20 +3,37 @@ import { z } from "zod";
 export default function validate(schema) {
   return (req, _res, next) => {
     try {
-      // ── Pattern 1: Flat schema ─────────────────────────────
+      // ── Helper: format Zod errors ─────────────────────────
+      const formatZodErrors = (issues, prefix = "") => {
+        return issues.map((e) => ({
+          field: prefix
+            ? `${prefix}.${e.path.join(".")}`
+            : e.path.join("."),
+          message: e.message,
+          code: e.code, // optional but useful
+        }));
+      };
+
+      // ── Helper: format Joi errors ─────────────────────────
+      const formatJoiErrors = (details, prefix = "") => {
+        return details.map((e) => ({
+          field: prefix
+            ? `${prefix}.${e.path.join(".")}`
+            : e.path.join("."),
+          message: e.message,
+          type: e.type,
+        }));
+      };
+
+      // ── Pattern 1: Flat schema (req.body directly) ────────
       if (typeof schema?.safeParse === "function") {
         const result = schema.safeParse(req.body);
 
         if (!result.success) {
-          const errors =
-            result.error?.issues?.map((e) => e.message) || [
-              "Validation error",
-            ];
-
           return next({
             statusCode: 400,
             message: "Validation Error",
-            errors,
+            errors: formatZodErrors(result.error.issues),
           });
         }
 
@@ -24,35 +41,29 @@ export default function validate(schema) {
         return next();
       }
 
-      // ── Pattern 2: Nested schema ───────────────────────────
+      // ── Pattern 2: Nested schema (body/query/params) ──────
       const parts = ["body", "query", "params"];
+      let allErrors = [];
 
       for (const part of parts) {
         if (!schema[part]) continue;
 
         const partSchema = schema[part];
 
-        // ── Zod ─────────────────────────────
+        // ── Zod ────────────────────────────────────────────
         if (typeof partSchema.safeParse === "function") {
           const result = partSchema.safeParse(req[part]);
 
           if (!result.success) {
-            const errors =
-              result.error?.issues?.map((e) => e.message) || [
-                `${part} validation error`,
-              ];
-
-            return next({
-              statusCode: 400,
-              message: `${capitalize(part)} Validation Error`,
-              errors,
-            });
+            allErrors.push(
+              ...formatZodErrors(result.error.issues, part)
+            );
+          } else {
+            req[part] = result.data;
           }
-
-          req[part] = result.data;
         }
 
-        // ── Joi ─────────────────────────────
+        // ── Joi ────────────────────────────────────────────
         else if (typeof partSchema.validate === "function") {
           const { error, value } = partSchema.validate(req[part], {
             abortEarly: false,
@@ -60,20 +71,22 @@ export default function validate(schema) {
           });
 
           if (error) {
-            const errors =
-              error?.details?.map((e) => e.message) || [
-                `${part} validation error`,
-              ];
-
-            return next({
-              statusCode: 400,
-              message: `${capitalize(part)} Validation Error`,
-              errors,
-            });
+            allErrors.push(
+              ...formatJoiErrors(error.details, part)
+            );
+          } else {
+            req[part] = value;
           }
-
-          req[part] = value;
         }
+      }
+
+      // ── If any errors found ──────────────────────────────
+      if (allErrors.length > 0) {
+        return next({
+          statusCode: 400,
+          message: "Validation Error",
+          errors: allErrors,
+        });
       }
 
       next();
@@ -81,9 +94,4 @@ export default function validate(schema) {
       next(err);
     }
   };
-}
-
-// helper
-function capitalize(str) {
-  return str.charAt(0).toUpperCase() + str.slice(1);
 }
