@@ -30,7 +30,6 @@ const storageService = {
       Key: fileName,
       Body: file.buffer,
       ContentType: file.mimetype,
-      ACL: 'public-read',
     });
 
     await s3.send(command);
@@ -48,7 +47,8 @@ const storageService = {
     try {
       const s3 = initS3();
 
-      let key = url.startsWith('/') ? url.slice(1) : url;
+      // extract key from full URL
+      const key = url.replace(`${env.S3_PUBLIC_URL}/`, '');
 
       const command = new DeleteObjectCommand({
         Bucket: env.S3_BUCKET,
@@ -59,7 +59,7 @@ const storageService = {
 
       return { success: true };
     } catch (error) {
-      console.error('S3 delete error:', error.message);
+      console.error('S3 delete error:', error);
       throw {
         status: 500,
         message: 'Failed to delete file',

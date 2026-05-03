@@ -10,8 +10,10 @@ import {
   updateUser,
   toggleStatus,
   deleteUser,
+  getPropLeadPlanQueryStats,
 } from './user.controller.js';
 import { createUserSchema, updateUserSchema } from './user.schema.js';
+import userPlanRoutes from './user-plan.routes.js';
 
 const router = Router();
 
@@ -19,16 +21,20 @@ const router = Router();
 router.use(authMiddleware);
 
 // checkPermission maps HTTP method → read / write / delete
-// GET → read, POST → write, PUT → write, PATCH → write, DELETE → delete
-// We reuse the 'customers' module permission key since users are the unified entity
-router.use(checkPermission('customers'));
+router.use(checkPermission('users'));
 
-// ── Stats — must come BEFORE /:id to avoid "stats" being treated as a Mongo ObjectId ──
+// ── Stats — must come BEFORE /:id ──────────────────────────────────────────
 router.get('/stats', getStats);
 
 // ── Collection ────────────────────────────────────────────────────────────────
 router.get('/',  listUsers);
 router.post('/', validate(createUserSchema), createUser);
+
+// ── User plan sub-routes ───────────────────────────────────────────────────────
+router.use('/:userId/plans', userPlanRoutes);
+
+// user properties , leads , enquiries and plans count stats
+router.get('/:id/prop-lead-plan-query-stats', getPropLeadPlanQueryStats);
 
 // ── Single document ───────────────────────────────────────────────────────────
 router.get('/:id',          getUser);

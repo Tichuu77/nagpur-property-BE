@@ -30,8 +30,6 @@ router.get('/stats', getStats);
 
 // ── Collection ────────────────────────────────────────────────────────────────
 router.get('/',  listLeads);
-router.post('/', validate(createLeadSchema), createLead);
-
 // ── Single document ───────────────────────────────────────────────────────────
 router.get('/:id',          getLead);
 router.put('/:id',          validate(updateLeadSchema), updateLead);

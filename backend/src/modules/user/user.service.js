@@ -1,24 +1,65 @@
+import planRepository from '../subscription/plan.repository.js';
 import userRepository from './user.repository.js';
+import purchasePlanRepository from '../purchasePlan/purchasePlan.repository.js';
+import Property from '../../models/property.model.js';
+import mongoose from 'mongoose';
+import PurchasePlans from '../../models/purchaseSubscription.model.js';
+import Lead from '../../models/leads.model.js';
 
 const userService = {
   /**
    * Create a new user
    * Validates uniqueness of mobile and email before creating
    */
-  createUser: async (payload) => {
-    // Check mobile uniqueness
-    if (payload.mobile) {
-      const existing = await userRepository.findByMobile(payload.mobile);
-      if (existing) throw { status: 409, message: 'Mobile number already registered' };
-    }
+ createUser: async (payload) => {
+    const session = await mongoose.startSession();
 
-    // Check email uniqueness (only if provided and non-empty)
-    if (payload.email && payload.email.trim()) {
-      const existing = await userRepository.findByEmail(payload.email.trim());
-      if (existing) throw { status: 409, message: 'Email already registered' };
-    }
+    try {
+      session.startTransaction();
 
-    return userRepository.create(payload);
+      // Check mobile uniqueness
+      if (payload.mobile) {
+        const existing = await userRepository.findByMobile(payload.mobile);
+        if (existing) throw { status: 409, message: 'Mobile number already registered' };
+      }
+
+      // Check email uniqueness
+      if (payload.email && payload.email.trim()) {
+        const existing = await userRepository.findByEmail(payload.email.trim());
+        if (existing) throw { status: 409, message: 'Email already registered' };
+      }
+
+      const freePlan = await planRepository.getFreePlan();
+
+      // 👇 Pass session
+      const user = await userRepository.create(payload, session);
+
+      if (freePlan) {
+        await purchasePlanRepository.createPurchasePlan(
+          {
+            planId: freePlan._id,
+            planName: freePlan.name,
+            userId: user._id,
+            price: freePlan?.price,
+            isFree: freePlan?.isFree,
+            duration: freePlan?.duration,
+            durationUnit: freePlan?.durationUnit,
+            isDurationUnlimited: freePlan?.isDurationUnlimited,
+            limits: freePlan?.limits,
+          },
+          session
+        );
+      }
+
+      await session.commitTransaction();
+      session.endSession();
+
+      return user;
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+      throw error;
+    }
   },
 
   /**
@@ -81,6 +122,14 @@ const userService = {
     const user = await userRepository.findById(id);
     if (!user) throw { status: 404, message: 'User not found' };
     return userRepository.updateById(id, { isActive: !user.isActive });
+  },
+
+  getPropLeadPlanQueryStats: async (userId) => {
+    const properties = await Property.countDocuments({brokerId: userId});
+    const leads = await Lead.countDocuments({brokerId: userId});
+    const enquiries = await Lead.countDocuments({userId: userId});
+    const plans =await PurchasePlans.countDocuments({userId: userId,});
+    return {properties, leads, enquiries, plans};
   },
 };
 

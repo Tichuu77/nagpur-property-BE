@@ -53,6 +53,8 @@ const planRepository = {
         const { total = 0, active = 0, free = 0 } = stats[0] || {};
         return { total, active, inactive: total - active, free, paid: total - free };
     },
+
+    getFreePlan: () => Plan.findOne({ isFree: true }),
 };
 
 export default planRepository;

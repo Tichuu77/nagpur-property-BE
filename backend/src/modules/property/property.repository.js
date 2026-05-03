@@ -4,7 +4,7 @@ const propertyRepository = {
   /**
    * Create a new property
    */
-  create: (payload) => Property.create(payload).lean,
+  create: (payload) => Property.create(payload),
 
   /**
    * Find all properties with server-side filtering, search, and pagination.
@@ -48,12 +48,12 @@ const propertyRepository = {
     if (dateFrom || dateTo) {
       filter.createdAt = {};
       if (dateFrom) filter.createdAt.$gte = new Date(dateFrom);
-      if (dateTo)   filter.createdAt.$lte = new Date(dateTo);
+      if (dateTo) filter.createdAt.$lte = new Date(dateTo);
     }
 
     const safeLimit = Math.min(Math.max(Number(limit) || 10, 1), 100);
-    const safePage  = Math.max(Number(page) || 1, 1);
-    const skip      = (safePage - 1) * safeLimit;
+    const safePage = Math.max(Number(page) || 1, 1);
+    const skip = (safePage - 1) * safeLimit;
 
     const [data, total] = await Promise.all([
       Property.find(filter)
@@ -68,8 +68,8 @@ const propertyRepository = {
     return {
       data,
       total,
-      page:       safePage,
-      limit:      safeLimit,
+      page: safePage,
+      limit: safeLimit,
       totalPages: Math.ceil(total / safeLimit) || 1,
     };
   },
@@ -107,46 +107,51 @@ const propertyRepository = {
    *      Removed 'Draft' (not in schema). 'Pending' and 'Rented' added to constants.
    */
   getStats: async () => {
-    const [total, active, pending, rejected, featured, sold, rented, inactive] =
-      await Promise.all([
-        Property.countDocuments(),
-        Property.countDocuments({ status: 'Active' }),
-        Property.countDocuments({ status: 'Pending' }),
-        Property.countDocuments({ status: 'Rejected' }),
-        Property.countDocuments({ featured: true }),
-        Property.countDocuments({ status: 'Sold' }),
-        Property.countDocuments({ status: 'Rented' }),
-        Property.countDocuments({ status: 'Inactive' }),
-      ]);
-
-    const [categoryBreakdown, typeBreakdown, localityBreakdown] = await Promise.all([
-      Property.aggregate([
-        { $group: { _id: '$listingCategory', count: { $sum: 1 } } },
-        { $sort: { count: -1 } },
-      ]),
-      Property.aggregate([
-        { $group: { _id: '$propertyType', count: { $sum: 1 } } },
-        { $sort: { count: -1 } },
-      ]),
-      Property.aggregate([
-        { $group: { _id: '$location.locality', count: { $sum: 1 } } },
-        { $sort: { count: -1 } },
-        { $limit: 10 },
-      ]),
+    const [stats] = await Property.aggregate([
+      {
+        $group: {
+          _id: null,
+          total: { $sum: 1 },
+          active: {
+            $sum: {
+              $cond: [{ $eq: ['$status', 'Active'] }, 1, 0],
+            },
+          },
+          featured: {
+            $sum: {
+              $cond: [{ $eq: ['$featured', true] }, 1, 0],
+            },
+          },
+          sold: {
+            $sum: {
+              $cond: [{ $eq: ['$status', 'Sold'] }, 1, 0],
+            },
+          },
+          inactive: {
+            $sum: {
+              $cond: [{ $eq: ['$status', 'Inactive'] }, 1, 0],
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          total: 1,
+          active: 1,
+          featured: 1,
+          sold: 1,
+          inactive: 1,
+        },
+      },
     ]);
 
-    return {
-      total,
-      active,
-      pending,
-      rejected,
-      featured,
-      sold,
-      rented,
-      inactive,
-      categoryBreakdown,
-      typeBreakdown,
-      localityBreakdown,
+    return stats || {
+      total: 0,
+      active: 0,
+      featured: 0,
+      sold: 0,
+      inactive: 0,
     };
   },
 

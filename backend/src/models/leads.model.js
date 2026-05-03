@@ -64,7 +64,7 @@ const leadSchema = new mongoose.Schema(
       },
       default: 'New',
     },
-    assignedBrokerId: {
+    brokerId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       default: null,
@@ -73,6 +73,11 @@ const leadSchema = new mongoose.Schema(
       type: String,
       default: 'admin',
       enum: ['admin', 'website', 'app', 'referral'],
+    },
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
     },
   },
   { timestamps: true }

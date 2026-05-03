@@ -137,7 +137,7 @@ const propertyService = {
     if (options.rejectedReason) update.rejectedReason = options.rejectedReason;
 
     const updated = await propertyRepository.updateById(id, update);
-    return formatPropertyMedia(updated.toObject ? updated.toObject() : updated);
+    return  updated
   },
 
   /**
@@ -148,7 +148,7 @@ const propertyService = {
     if (!property) throw { status: 404, message: 'Property not found' };
 
     const updated = await propertyRepository.updateById(id, { featured: !property.featured });
-    return formatPropertyMedia(updated.toObject ? updated.toObject() : updated);
+    return  updated
   },
 
   /**
@@ -159,7 +159,7 @@ const propertyService = {
     if (!property) throw { status: 404, message: 'Property not found' };
 
     const updated = await propertyRepository.updateById(id, { featured: !!featured });
-    return formatPropertyMedia(updated.toObject ? updated.toObject() : updated);
+    return  updated
   },
 
   /**

@@ -1,12 +1,6 @@
 import leadRepository from './lead.repository.js';
 
 const leadService = {
-  /**
-   * Create a new lead
-   */
-  createLead: async (payload) => {
-    return leadRepository.create(payload);
-  },
 
   /**
    * Get paginated list with server-side filtering

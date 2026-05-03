@@ -1,4 +1,5 @@
 import User from '../../models/user.model.js';
+import PurchasePlan from '../../models/purchaseSubscription.model.js'
 
 const userRepository = {
   /**
@@ -36,11 +37,11 @@ const userRepository = {
 
     if (search?.trim()) {
       filter.$or = [
-        { name:   { $regex: search.trim(), $options: 'i' } },
+        { name: { $regex: search.trim(), $options: 'i' } },
         { mobile: { $regex: search.trim(), $options: 'i' } },
-        { email:  { $regex: search.trim(), $options: 'i' } },
-        { area:   { $regex: search.trim(), $options: 'i' } },
-        { city:   { $regex: search.trim(), $options: 'i' } },
+        { email: { $regex: search.trim(), $options: 'i' } },
+        { area: { $regex: search.trim(), $options: 'i' } },
+        { city: { $regex: search.trim(), $options: 'i' } },
       ];
     }
 
@@ -53,8 +54,8 @@ const userRepository = {
     }
 
     const safeLimit = Math.min(Math.max(Number(limit) || 10, 1), 100);
-    const safePage  = Math.max(Number(page) || 1, 1);
-    const skip      = (safePage - 1) * safeLimit;
+    const safePage = Math.max(Number(page) || 1, 1);
+    const skip = (safePage - 1) * safeLimit;
 
     const [data, total] = await Promise.all([
       User.find(filter)
@@ -68,8 +69,8 @@ const userRepository = {
     return {
       data,
       total,
-      page:       safePage,
-      limit:      safeLimit,
+      page: safePage,
+      limit: safeLimit,
       totalPages: Math.ceil(total / safeLimit) || 1,
     };
   },
@@ -79,21 +80,36 @@ const userRepository = {
    * Returns: { total, active, inactive, free, paid }
    */
   getStats: async () => {
-    const [total, active, free] = await Promise.all([
-      User.countDocuments(),
-      User.countDocuments({ isActive: true }),
-      User.countDocuments({ plan: 'free' }),
+    const result = await User.aggregate([
+      {
+        $match: { isDeleted: false },
+      },
+      {
+        $facet: {
+          total: [
+            { $count: 'count' }
+          ],
+          active: [
+            { $match: { isActive: true } },
+            { $count: 'count' }
+          ],
+        },
+      },
+      {
+        $project: {
+          total: { $ifNull: [{ $arrayElemAt: ['$total.count', 0] }, 0] },
+          active: { $ifNull: [{ $arrayElemAt: ['$active.count', 0] }, 0] },
+        },
+      },
+      {
+        $addFields: {
+          inactive: { $subtract: ['$total', '$active'] },
+        },
+      },
     ]);
 
-    return {
-      total,
-      active,
-      inactive: total - active,
-      free,
-      paid: total - free,
-    };
+    return result[0] || { total: 0, active: 0, inactive: 0 };
   },
-
   /**
    * Update a user by ID
    */

@@ -2,11 +2,6 @@ import Lead from '../../models/leads.model.js';
 
 const leadRepository = {
   /**
-   * Create a new lead
-   */
-  create: (payload) => Lead.create(payload),
-
-  /**
    * Find lead by ID
    */
   findById: (id) => Lead.findById(id).populate('assignedBrokerId', 'name mobile email'),

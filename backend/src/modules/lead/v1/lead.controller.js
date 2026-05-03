@@ -1,17 +1,6 @@
 import leadService from '../lead.service.js';
 import { successResponse } from '../../../utils/api-response.js';
 
-/**
- * POST /api/v1/admin/leads
- */
-export const createLead = async (req, res, next) => {
-  try {
-    const lead = await leadService.createLead(req.body);
-    res.status(201).json(successResponse(lead, 'Lead created successfully'));
-  } catch (err) {
-    next(err);
-  }
-};
 
 /**
  * GET /api/v1/admin/leads?search=&status=&area=&propertyType=&dateFrom=&dateTo=&page=1&limit=10

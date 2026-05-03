@@ -73,6 +73,15 @@ export const getUser = async (req, res, next) => {
   }
 };
 
+export const getPropLeadPlanQueryStats = async (req, res, next) => {
+  try {
+    const stats = await userService.getPropLeadPlanQueryStats(req.params.id);
+    res.status(200).json(successResponse(stats, 'Stats fetched successfully'));
+  } catch (err) {
+    next(err);
+  }
+}
+
 /**
  * PUT /api/v1/admin/users/:id
  * Update user fields (partial update supported)

@@ -50,6 +50,7 @@ const userSchema = new mongoose.Schema(
     fcmToken:  { type: String },
     avatar:    { type: String },
     isActive:  { type: Boolean, default: true },
+    isDeleted: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
