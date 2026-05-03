@@ -523,7 +523,9 @@ export function validatePropertyPayload(payload) {
         }));
       } else {
         // Rental: ownershipType not shown in doc §19
-        schema = schema;
+        schema = schema.merge(z.object({
+          ownershipType: optionalEnum(['Freehold', 'Leasehold'], 'Ownership type must be Freehold or Leasehold'),
+        }));
       }
 
       detailsResult = schema.safeParse(details);
