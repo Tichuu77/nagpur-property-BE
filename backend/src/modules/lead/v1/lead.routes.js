@@ -3,7 +3,6 @@ import authMiddleware       from '../../../middlewares/auth.middleware.js';
 import checkPermission      from '../../../middlewares/check-permission.middleware.js';
 import validate             from '../../../middlewares/validate.middleware.js';
 import {
-  createLead,
   listLeads,
   getStats,
   getLead,
