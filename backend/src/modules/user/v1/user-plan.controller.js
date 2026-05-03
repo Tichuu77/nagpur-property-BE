@@ -1,12 +1,11 @@
+// user-plan.controller.js
 import Subscription from '../../../models/purchaseSubscription.model.js';
+import Plan from '../../../models/subscription.model.js';
 import User from '../../../models/user.model.js';
 import { successResponse } from '../../../utils/api-response.js';
 
-const PLAN_TIER = { free: 0, basic: 1, premium: 2, enterprise: 3 };
-
 /**
  * GET /api/v1/admin/users/:userId/plans
- * List all plan records for a user
  */
 export const listUserPlans = async (req, res, next) => {
   try {
@@ -14,10 +13,7 @@ export const listUserPlans = async (req, res, next) => {
     const user = await User.findById(userId);
     if (!user) return next({ status: 404, message: 'User not found' });
 
-    const plans = await Subscription.find({ userId })
-      .populate('planId', 'name price duration durationUnit')
-      .sort({ createdAt: -1 });
-
+    const plans = await Subscription.find({ userId }).sort({ createdAt: -1 });
     res.status(200).json(successResponse(plans, 'User plans fetched'));
   } catch (err) {
     next(err);
@@ -26,54 +22,58 @@ export const listUserPlans = async (req, res, next) => {
 
 /**
  * POST /api/v1/admin/users/:userId/plans
- * Assign a new plan to a user
- * Body: { planName, amount, startDate, endDate, status, paymentId? }
+ * Body: { planId, startDate, endDate?, status?, paymentId?, orderId?, method? }
  */
 export const createUserPlan = async (req, res, next) => {
   try {
     const { userId } = req.params;
-    const { planName, amount, startDate, endDate, status = 'Active', paymentId } = req.body;
+    const { planId, startDate, endDate, status = 'Active', paymentId, orderId, method } = req.body;
 
-    if (!planName || !amount || !startDate || !endDate) {
-      return next({ status: 400, message: 'planName, amount, startDate and endDate are required' });
+    if (!planId || !startDate) {
+      return next({ status: 400, message: 'planId and startDate are required' });
     }
 
-    const user = await User.findById(userId);
+    const [user, plan] = await Promise.all([
+      User.findById(userId),
+      Plan.findById(planId),
+    ]);
     if (!user) return next({ status: 404, message: 'User not found' });
+    if (!plan) return next({ status: 404, message: 'Plan not found' });
 
-    const end = new Date(endDate);
-    const now = new Date();
+    const start = new Date(startDate);
+    let end = endDate ? new Date(endDate) : undefined;
 
-    const plan = await Subscription.create({
+    // Auto-calculate end date from plan duration if not unlimited and no endDate given
+    if (!plan.isDurationUnlimited && !end) {
+      end = new Date(start);
+      if (plan.durationUnit === 'days')   end.setDate(end.getDate() + plan.duration);
+      if (plan.durationUnit === 'months') end.setMonth(end.getMonth() + plan.duration);
+      if (plan.durationUnit === 'years')  end.setFullYear(end.getFullYear() + plan.duration);
+    }
+
+    const subscription = await Subscription.create({
       userId,
-      planId: null,
-      startDate: new Date(startDate),
+      planId: plan._id,
+      planName: plan.name,
+      startDate: start,
       endDate: end,
       status,
+      isFree: plan.isFree,
+      price: plan.price,
+      duration: plan.duration,
+      durationUnit: plan.durationUnit,
+      isDurationUnlimited: plan.isDurationUnlimited,
+      limits: { ...plan.limits },
       paymentDetails: {
-        paymentId: paymentId || undefined,
-        amountPaid: Number(amount),
+        paymentId:  paymentId  || undefined,
+        orderId:    orderId    || undefined,
+        amountPaid: plan.isFree ? 0 : plan.price,
+        method:     method     || undefined,
       },
       usage: { propertiesPosted: 0, leadsUnlocked: 0, featuredPropertiesUsed: 0 },
     });
 
-    // Sync user.plan and planExpiry when plan is active and not expired
-    if (status === 'Active' && end > now) {
-      const planKey = planName.toLowerCase();
-      const currentTier = PLAN_TIER[user.plan] ?? 0;
-      const newTier = PLAN_TIER[planKey] ?? 0;
-      if (newTier >= currentTier) {
-        user.plan = planKey;
-        user.planExpiry = end;
-        await user.save();
-      }
-    }
-
-    // Attach planName for response (no Plan model row in this flow)
-    const out = plan.toObject();
-    out.planName = planName;
-
-    res.status(201).json(successResponse(out, 'Plan assigned successfully'));
+    res.status(201).json(successResponse(subscription, 'Plan assigned successfully'));
   } catch (err) {
     next(err);
   }
@@ -81,36 +81,51 @@ export const createUserPlan = async (req, res, next) => {
 
 /**
  * PUT /api/v1/admin/users/:userId/plans/:planRecordId
- * Update a plan record
+ * Body: { planId?, startDate?, endDate?, status?, paymentId?, orderId?, method? }
  */
 export const updateUserPlan = async (req, res, next) => {
   try {
     const { userId, planRecordId } = req.params;
-    const { planName, amount, startDate, endDate, status, paymentId } = req.body;
+    const { planId, startDate, endDate, status, paymentId, orderId, method } = req.body;
 
-    const plan = await Subscription.findOne({ _id: planRecordId, userId });
-    if (!plan) return next({ status: 404, message: 'Plan record not found' });
+    const subscription = await Subscription.findOne({ _id: planRecordId, userId });
+    if (!subscription) return next({ status: 404, message: 'Plan record not found' });
 
-    if (planName) plan.set('planName', planName);
-    if (startDate) plan.startDate = new Date(startDate);
-    if (endDate) plan.endDate = new Date(endDate);
-    if (status) plan.status = status;
-    if (amount) plan.paymentDetails = { ...plan.paymentDetails, amountPaid: Number(amount) };
-    if (paymentId) plan.paymentDetails = { ...plan.paymentDetails, paymentId };
-
-    await plan.save();
-
-    // Re-sync user plan if this is the active record
-    if (plan.status === 'Active' && plan.endDate > new Date() && planName) {
-      const user = await User.findById(userId);
-      if (user) {
-        user.plan = planName.toLowerCase();
-        user.planExpiry = plan.endDate;
-        await user.save();
+    // If switching plan
+    if (planId && planId !== String(subscription.planId)) {
+      const plan = await Plan.findById(planId);
+      if (!plan) return next({ status: 404, message: 'Plan not found' });
+      subscription.planId          = plan._id;
+      subscription.planName        = plan.name;
+      subscription.isFree          = plan.isFree;
+      subscription.price           = plan.price;
+      subscription.duration        = plan.duration;
+      subscription.durationUnit    = plan.durationUnit;
+      subscription.isDurationUnlimited = plan.isDurationUnlimited;
+      subscription.limits          = { ...plan.limits };
+      if (!plan.isDurationUnlimited && startDate && !endDate) {
+        const start = new Date(startDate);
+        const end   = new Date(start);
+        if (plan.durationUnit === 'days')   end.setDate(end.getDate() + plan.duration);
+        if (plan.durationUnit === 'months') end.setMonth(end.getMonth() + plan.duration);
+        if (plan.durationUnit === 'years')  end.setFullYear(end.getFullYear() + plan.duration);
+        subscription.endDate = end;
       }
     }
 
-    res.status(200).json(successResponse(plan, 'Plan updated successfully'));
+    if (startDate) subscription.startDate = new Date(startDate);
+    if (endDate)   subscription.endDate   = new Date(endDate);
+    if (status)    subscription.status    = status;
+
+    subscription.paymentDetails = {
+      ...subscription.paymentDetails,
+      ...(paymentId && { paymentId }),
+      ...(orderId   && { orderId }),
+      ...(method    && { method }),
+    };
+
+    await subscription.save();
+    res.status(200).json(successResponse(subscription, 'Plan updated successfully'));
   } catch (err) {
     next(err);
   }
@@ -118,15 +133,12 @@ export const updateUserPlan = async (req, res, next) => {
 
 /**
  * DELETE /api/v1/admin/users/:userId/plans/:planRecordId
- * Remove a plan record
  */
 export const deleteUserPlan = async (req, res, next) => {
   try {
     const { userId, planRecordId } = req.params;
-
     const plan = await Subscription.findOneAndDelete({ _id: planRecordId, userId });
     if (!plan) return next({ status: 404, message: 'Plan record not found' });
-
     res.status(200).json(successResponse(null, 'Plan record deleted'));
   } catch (err) {
     next(err);
