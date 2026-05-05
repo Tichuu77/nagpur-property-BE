@@ -17,6 +17,7 @@ export function parsePropertyBody(req, res, next) {
     let body;
 
     if (req.body?.data) {
+      console.log('Shape A', req.body);
       // Shape A
       try {
         body = JSON.parse(req.body.data);

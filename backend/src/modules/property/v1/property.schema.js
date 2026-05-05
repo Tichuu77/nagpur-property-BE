@@ -6,7 +6,10 @@ import {
   PROPERTY_TYPES_MESSAGE,
   PROPERTY_STATUSES,
   PROPERTY_STATUSES_MESSAGE,
-  NAGPUR_LOCALITIES,
+  LOCALITY_MAX_LENGTH_LIMIT,
+  LOCALITY_MAX_LENGTH_LIMIT_MESSAGE,
+  LOCALITY_MIN_LENGTH_LIMIT,
+  LOCALITY_MIN_LENGTH_LIMIT_MESSAGE,
   AMENITIES_LIST,
   AMENITIES_LIST_MESSAGE,
   FURNISHING_OPTIONS,
@@ -142,7 +145,7 @@ const optionalEnum = (values, msg) => z.enum(values, { errorMap: () => ({ messag
 
 // ─── Location schema ──────────────────────────────────────────────────────────
 const locationSchema = z.object({
-  locality: z.enum(NAGPUR_LOCALITIES, { errorMap: () => ({ message: 'Select a valid Nagpur locality' }) }),
+  locality: z.string().max(LOCALITY_MAX_LENGTH_LIMIT, LOCALITY_MAX_LENGTH_LIMIT_MESSAGE).min(LOCALITY_MIN_LENGTH_LIMIT, LOCALITY_MIN_LENGTH_LIMIT_MESSAGE),
   subLocality: optionalString(SUB_LOCALITY_LENGTH_LIMIT, SUB_LOCALITY_LENGTH_LIMIT_MESSAGE),
   landmark: optionalString(LANDMARK_LENGTH_LIMIT, LANDMARK_LENGTH_LIMIT_MESSAGE),
   pinCode: z.string().regex(PINCODE_REGEX, PINCODE_REGEX_MESSAGE).nullable().optional(),

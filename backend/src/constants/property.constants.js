@@ -29,15 +29,10 @@ const FURNISHING_OPTIONS = [
 ];
 const FURNISHING_OPTIONS_MESSAGE = `Furnishing option must be one of: ${FURNISHING_OPTIONS.join(', ')}`;
 
-const NAGPUR_LOCALITIES = [
-  'Dharampeth', 'Sadar', 'Sitabuldi', 'Manish Nagar', 'Trimurti Nagar',
-  'Besa', 'Wardha Road', 'Hingna Road', 'MIHAN', 'Mankapur',
-  'Laxmi Nagar', 'Ramdaspeth', 'Bajaj Nagar', 'Pratap Nagar',
-  'Kamptee Road', 'Wadi', 'Narendra Nagar', 'Nandanvan',
-  'Koradi Road', 'Somalwada', 'Khamla', 'Ambazari',
-  'Seminary Hills', 'Civil Lines', 'Godhni', 'Dighori',
-];
-const NAGPUR_LOCALITIES_MESSAGE = `Area must be one of: ${NAGPUR_LOCALITIES.join(', ')}`;
+const LOCALITY_MAX_LENGTH_LIMIT = 100;
+const LOCALITY_MAX_LENGTH_LIMIT_MESSAGE = `Locality must be at most ${LOCALITY_MAX_LENGTH_LIMIT} characters long`;
+const LOCALITY_MIN_LENGTH_LIMIT = 2;
+const LOCALITY_MIN_LENGTH_LIMIT_MESSAGE = `Locality must be at least ${LOCALITY_MIN_LENGTH_LIMIT} characters long`;
 
 const AMENITIES_LIST = [
   'Parking (2-wheeler)',
@@ -291,8 +286,6 @@ export {
   PROPERTY_STATUSES_MESSAGE,
   FURNISHING_OPTIONS,
   FURNISHING_OPTIONS_MESSAGE,
-  NAGPUR_LOCALITIES,
-  NAGPUR_LOCALITIES_MESSAGE,
   AMENITIES_LIST,
   AMENITIES_LIST_MESSAGE,
   PINCODE_REGEX,
@@ -429,5 +422,8 @@ export {
   NUMBER_OF_DOCKS_MESSAGE,
   POSSESSION_DATE_REGEX,
   POSSESSION_DATE_REGEX_MESSAGE,
-  
+  LOCALITY_MAX_LENGTH_LIMIT,
+  LOCALITY_MAX_LENGTH_LIMIT_MESSAGE,
+  LOCALITY_MIN_LENGTH_LIMIT,
+  LOCALITY_MIN_LENGTH_LIMIT_MESSAGE,
 };

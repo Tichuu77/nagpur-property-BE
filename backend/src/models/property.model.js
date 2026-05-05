@@ -9,8 +9,6 @@ import {
   PROPERTY_STATUSES_MESSAGE,
   FURNISHING_OPTIONS,
   FURNISHING_OPTIONS_MESSAGE,
-  NAGPUR_LOCALITIES,
-  NAGPUR_LOCALITIES_MESSAGE,
   AMENITIES_LIST,
   AMENITIES_LIST_MESSAGE,
   PINCODE_REGEX,
@@ -139,6 +137,10 @@ import {
   NUMBER_OF_SHOWROOM_FLOORS_MAX,
   NUMBER_OF_DOCKS_MIN,
   NUMBER_OF_DOCKS_MAX,
+  LOCALITY_MAX_LENGTH_LIMIT,
+  LOCALITY_MAX_LENGTH_LIMIT_MESSAGE,
+  LOCALITY_MIN_LENGTH_LIMIT,
+  LOCALITY_MIN_LENGTH_LIMIT_MESSAGE,
 } from '../constants/property.constants.js';
 
 // ─── Sub-schemas ──────────────────────────────────────────────────────────────
@@ -153,7 +155,8 @@ const locationSchema = new mongoose.Schema({
   locality: {
     type: String,
     required: [true, 'Locality is required'],
-    enum: { values: NAGPUR_LOCALITIES, message: NAGPUR_LOCALITIES_MESSAGE },
+    minlength: [LOCALITY_MIN_LENGTH_LIMIT, LOCALITY_MIN_LENGTH_LIMIT_MESSAGE],
+    maxlength: [LOCALITY_MAX_LENGTH_LIMIT, LOCALITY_MAX_LENGTH_LIMIT_MESSAGE],
   },
   subLocality: {
     type: String,

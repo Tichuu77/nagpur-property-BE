@@ -1,24 +1,16 @@
-/**
- * validateProperty.middleware.js
- *
- * Property-specific validation middleware that plugs into the existing
- * validate() pattern. Runs AFTER upload + parsePropertyBody.
- *
- * validateProperty       → POST (full validation, always)
- * validatePropertyUpdate → PUT  (full validation only when listingCategory
- *                               + propertyType are both present; otherwise
- *                               passes raw parsedBody through for partial updates)
- */
-import { validatePropertyPayload } from './property.schema.js';
+// validateProperty.middleware.js
+
+import { validatePropertyPayload } from "./property.schema.js";
 
 export function validateProperty(req, _res, next) {
-  const { error, data } = validatePropertyPayload(req.parsedBody);
+  console.log('Validating request...', req.parsedBody);
+  const { errors, data } = validatePropertyPayload(req.parsedBody); // ✅ errors not error
 
-  if (error) {
+  if (errors) {
     return next({
       statusCode: 400,
       message: 'Validation Error',
-      errors: [error],
+      errors,
     });
   }
 
@@ -30,20 +22,18 @@ export function validatePropertyUpdate(req, _res, next) {
   const body = req.parsedBody;
 
   if (body.listingCategory && body.propertyType) {
-    const { error, data } = validatePropertyPayload(body);
+    const { errors, data } = validatePropertyPayload(body); // ✅ errors not error
 
-    if (error) {
+    if (errors) {
       return next({
         statusCode: 400,
         message: 'Validation Error',
-        errors: [error],
+        errors,
       });
     }
 
     req.validatedBody = data;
   } else {
-    // Partial update — no listingCategory+propertyType combo present,
-    // skip full matrix validation; Mongoose validators are the safety net.
     req.validatedBody = body;
   }
 
